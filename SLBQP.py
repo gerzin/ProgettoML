@@ -91,7 +91,10 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
         d = -g
         
         # Project the direction over the feasible region
-        d = project()
+        a = np.empty(2*n)
+        a[0:n] = np.ones(n)
+        a[n+1:] = - np.ones(n)
+        d = project(d, u, a, 0, 2)
         
         d_norm = np.linalg.norm(d)
         
