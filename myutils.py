@@ -29,3 +29,12 @@ def load_data(csvfile, delfirst=True):
     Y_1, Y_2 = loaded_data[:,-2], loaded_data[:,-1]
     loaded_data = np.delete(np.delete(loaded_data, -1, 1), -1, 1)
     return loaded_data, Y_1, Y_2
+
+def build_problem(n, u):
+    n2 = int(n/2)
+    G = np.block([[np.eye(n)], [-np.eye(n)]])
+    A = np.block([ [np.ones(n2), -np.ones(n2) ]])
+    h = np.zeros(2*n)
+    h[0:n] = u
+    b = np.zeros(1)
+    return G, A, h, b
