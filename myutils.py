@@ -1,3 +1,4 @@
+import argparse
 
 def print_invocation(f):
     def wrapper(*args, **kwargs):
@@ -15,4 +16,8 @@ def dump_args(f):
 		return f(*args, **kwargs)
 	return wrapper
 
+def get_cmdline_args():
+    parser = argparse.ArgumentParser(description='Support Vector Regression using Gradient Projection.')    
+    parser.add_argument('-f','--file', help='input csv file')
+    return parser.parse_args()
 
