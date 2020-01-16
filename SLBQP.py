@@ -9,7 +9,6 @@ def compute_x(d, lmb, a, u):
         elif(x[i] < 0): x[i] = 0
     return x
 
-@print_invocation
 def project(d, u, a, lmb, d_lmb, eps=1e-6):
     # BRACKETING PHASE -----
     # ----------------------
@@ -53,11 +52,9 @@ def project(d, u, a, lmb, d_lmb, eps=1e-6):
             lmb -= d_lmb
             x = compute_x(d, lmb, a, u)
             r = np.dot(a, x)
-            print(r)
             if(abs(r) < eps): return x
         lmb_l = lmb
         r_l = r
-        print(r)
     
     #secant phase
     s = 1 - r_l/r_u
@@ -66,7 +63,6 @@ def project(d, u, a, lmb, d_lmb, eps=1e-6):
     x = compute_x(d, lmb, a, u)
     r = np.dot(a, x)
     while(abs(r) >= eps):
-        print(r)
         if(r > 0):
             if(s <= 2):
                 lmb_u = lmb; r_u = r
@@ -93,8 +89,7 @@ def project(d, u, a, lmb, d_lmb, eps=1e-6):
     return x
     
 
-def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
-    
+def SLBQP(Q, q, u, eps=1e-6, maxIter=1000): 
     n = int(len(q)/2)
     x = np.full(2*n, u/2)
     i = 1
@@ -104,20 +99,17 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
         Qx = np.dot(Q, x)
 
         #pdb.set_trace()
-        v = np.dot(x, Qx) + np.dot(q, x)
+        v = np.dot(Qx,x) + np.dot(q, x)
         g = np.array(Qx + q)
-        d = x-g
+        d = np.array(x-g).flatten()
 
         # Project the direction over the feasible region
         a = np.empty(2*n)
         a[0:n] = np.ones(n)
         a[n:] = - np.ones(n)
-        #print(f"prima\n{d}")
         d = project(d, u, a, 0, 2)
         d = d - x
-        #print(f"dopo\n{d}")
         d_norm = np.linalg.norm(d)
-        print(f"norma\n{d_norm}")
         
         if(d_norm < eps):
             return x
@@ -130,7 +122,6 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
                 max_alpha = min( max_alpha, (u - x[i])/d[i] )
             elif(d[i] < 0):
                 max_alpha = min( max_alpha, (-x[i])/d[i] )
-        print(f"max_alpha\n{max_alpha}")
         
         # den = d' * Q * d
         den = np.dot(d, np.dot(Q, d))
@@ -145,8 +136,12 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
 
         
             
-Q = np.matrix("1,2,3,4;2,1,2,3;3,2,1,2;4,3,2,1")
-Q = np.array([[1,2,3,4],[2,1,2,3],[3,2,1,2],[4,3,2,1]])
-q = np.array([1,2,3,4])
+#Q = np.matrix("1,2,3,4;2,1,2,3;3,2,1,2;4,3,2,1")
+#Q = np.array([[1,2,3,4],[2,1,2,3],[3,2,1,2],[4,3,2,1]])
+#q = np.array([1,2,3,4])
 u = 10
-SLBQP(Q,q,u)
+
+Q = np.array([[6.2521  ,  4.5275  ,  5.3306  ,  2.5052  ,  3.1519  ,  3.9862],[4.5275  ,  5.2587  ,  4.2953   , 2.0428  ,  3.4669   , 3.7038],[5.3306 ,   4.2953  ,  5.4904 ,   2.0756  ,  3.0360  ,  3.4988],[2.5052  ,  2.0428  ,  2.0756  ,  1.7720  ,  1.5066  ,  1.6718],[3.1519  ,  3.4669  ,  3.0360  ,  1.5066  ,  3.5791  ,  3.1391],[3.9862  ,  3.7038  ,  3.4988  ,  1.6718  ,  3.1391  ,  3.4063]])
+
+q = np.array([-162.0451, -147.2674,-154.0566,-76.1109,-110.5499,-117.7583])
+print(SLBQP(Q,q,u))
