@@ -1,18 +1,21 @@
 import numpy as np
+import pdb
+from myutils import *
 
 def compute_x(d, lmb, a, u):
     x = d + lmb*a
     for i in range(len(x)):
         if(x[i] > u): x[i] = u
-        elif(x[i] < 0): x[i] = 0
-    
+        elif(x[i] < 0): x[i] = 0 
     return x
 
+@print_invocation
 def project(d, u, a, lmb0, d_lmb, eps=1e-6):
     # bracketing phase
     lmb = lmb0
     
     x = compute_x(d, lmb, a, u)
+    print(f"compute\n{x}")
     r = np.dot(a, x)
     if(abs(r) < eps): return x
     
@@ -77,25 +80,27 @@ def project(d, u, a, lmb0, d_lmb, eps=1e-6):
 
 def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
     
-    n = len(q)/2
+    n = int(len(q)/2)
     x = np.full(2*n, u/2)
-
     i = 1
     
-    while 1:
+    while True:
         # Compute function value (v), gradient (g) and descent direction (d)
-        
         Qx = np.dot(Q, x)
+
+        #pdb.set_trace()
         v = np.dot(x, Qx) + np.dot(q, x)
-        g = Qx + q
-        d = -g
-        
+        g = np.array(Qx + q)
+        d = x-g
+
         # Project the direction over the feasible region
         a = np.empty(2*n)
         a[0:n] = np.ones(n)
-        a[n+1:] = - np.ones(n)
+        a[n:] = - np.ones(n)
+        print(f"prima\n{d}")
         d = project(d, u, a, 0, 2)
-        
+        print(f"dopo\n{d}")
+        d = d - x
         d_norm = np.linalg.norm(d)
         
         if(d_norm < eps):
@@ -123,4 +128,8 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
 
         
             
-            
+Q = np.matrix("1,2,3,4;2,1,2,3;3,2,1,2;4,3,2,1")
+Q = np.array([[1,2,3,4],[2,1,2,3],[3,2,1,2],[4,3,2,1]])
+q = np.array([1,2,3,4])
+u = 10
+SLBQP(Q,q,u)
