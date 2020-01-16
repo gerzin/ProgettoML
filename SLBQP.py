@@ -6,32 +6,42 @@ def compute_x(d, lmb, a, u):
     x = d + lmb*a
     for i in range(len(x)):
         if(x[i] > u): x[i] = u
-        elif(x[i] < 0): x[i] = 0 
+        elif(x[i] < 0): x[i] = 0
     return x
 
 @print_invocation
-def project(d, u, a, lmb0, d_lmb, eps=1e-6):
-    # bracketing phase
-    lmb = lmb0
+def project(d, u, a, lmb, d_lmb, eps=1e-6):
+    # BRACKETING PHASE -----
+    # ----------------------
     
-    x = compute_x(d, lmb, a, u)
-    print(f"compute\n{x}")
-    r = np.dot(a, x)
+    # Compute x and r and check whether it found the minimum
+    x = compute_x(d, lmb, a, u); r = np.dot(a, x)
     if(abs(r) < eps): return x
     
     if(r < 0):
-        lmb_l = lmb; r_l = r; lmb += d_lmb
-        x = compute_x(d, lmb, a, u)
-        r = np.dot(a, x)
+        # start looking for a positive value of r
+        
+        # update lower bounds and lambda
+        lmb_l = lmb; r_l = r;
+        lmb += d_lmb
+        
+        # Compute x and r and check whether it found the minimum
+        x = compute_x(d, lmb, a, u); r = np.dot(a, x)
         if(abs(r) < eps): return x
+        
         while(r < 0):
-            lmb_l = lmb; r_l = r
-            s = max(r_l/r -1, 0.1); d_lmb += d_lmb/s
-            lmb += d_lmb
+            # update lower bounds and lambda
+            lmb_l = lmb; r_l = r;
+            s = max(r_l/r -1, 0.1); d_lmb += d_lmb/s; lmb += d_lmb
+            
+            # Compute x and r and check whether it found the minimum
             x = compute_x(d, lmb, a, u)
             r = np.dot(a, x)
             if(abs(r) < eps): return x
+        
+        # initialize upper bounds
         lmb_u = lmb; r_u = r
+
     else:
         lmb_u = lmb; r_u = r; lmb -= d_lmb
         x = compute_x(d, lmb, a, u)
@@ -43,9 +53,11 @@ def project(d, u, a, lmb0, d_lmb, eps=1e-6):
             lmb -= d_lmb
             x = compute_x(d, lmb, a, u)
             r = np.dot(a, x)
+            print(r)
             if(abs(r) < eps): return x
         lmb_l = lmb
         r_l = r
+        print(r)
     
     #secant phase
     s = 1 - r_l/r_u
@@ -53,7 +65,8 @@ def project(d, u, a, lmb0, d_lmb, eps=1e-6):
     lmb = lmb_u - d_lmb
     x = compute_x(d, lmb, a, u)
     r = np.dot(a, x)
-    while(abs(r) < eps):
+    while(abs(r) >= eps):
+        print(r)
         if(r > 0):
             if(s <= 2):
                 lmb_u = lmb; r_u = r
@@ -74,8 +87,10 @@ def project(d, u, a, lmb0, d_lmb, eps=1e-6):
                 lmb_new = min(lmb + d_lmb, 0.75*lmb_u + 0.25*lmb)
                 lmb_l = lmb; r_l = r; lmb = lmb_new
                 s = (lmb_u - lmb_l)/(lmb_u - lmb)
+        x = compute_x(d, lmb, a, u)
+        r = np.dot(a, x)
                 
-    return compute_x(d, lmb, a, u)
+    return x
     
 
 def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
@@ -97,11 +112,12 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
         a = np.empty(2*n)
         a[0:n] = np.ones(n)
         a[n:] = - np.ones(n)
-        print(f"prima\n{d}")
+        #print(f"prima\n{d}")
         d = project(d, u, a, 0, 2)
-        print(f"dopo\n{d}")
         d = d - x
+        #print(f"dopo\n{d}")
         d_norm = np.linalg.norm(d)
+        print(f"norma\n{d_norm}")
         
         if(d_norm < eps):
             return x
@@ -114,6 +130,7 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
                 max_alpha = min( max_alpha, (u - x[i])/d[i] )
             elif(d[i] < 0):
                 max_alpha = min( max_alpha, (-x[i])/d[i] )
+        print(f"max_alpha\n{max_alpha}")
         
         # den = d' * Q * d
         den = np.dot(d, np.dot(Q, d))
