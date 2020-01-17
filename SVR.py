@@ -27,7 +27,7 @@ class SVR:
     def fit(self,X, y):
         K = self._compute_kernel_matrix(X, self.ker)
         Q, q, a = self._prepare(K, y)
-        status, x, e = SLBQP(Q, q, self.C)
+        status, x, e = SLBQP(Q, q, self.C, self.tol, self.maxIter)
         if status == 'terminated':
             print("maxIter reached")
         self.data = X
