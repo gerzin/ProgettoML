@@ -66,3 +66,28 @@ def compute_kernel_matrix(dataset, dot_product=linear):
             K[j][i] = v
 
     return K
+
+def prepare(K, eps, d, C):
+    (n,m) = K.shape
+    if(n != m):
+        print("matrix must be square")
+        return
+    
+    # compute quadratic part of the Quadratic Problem
+    Q = np.empty([2*n,2*n])
+    Q[:n][:n] = K
+    Q[:n][n:] = -K
+    Q[n:][:n] = -K
+    Q[n:][n:] = K
+    
+    # compute linear part of the Quadratic Problem
+    q = np.empty(2*n)
+    q[:n] = eps - d
+    q[n:] = eps + d
+    
+    # compute vector for the linear constraint ax = 0
+    a = np.empty(2*n)
+    a[:n] = 1.
+    a[n:] = -1.
+    
+    return Q,q,C,a
