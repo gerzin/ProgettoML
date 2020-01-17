@@ -121,9 +121,9 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
         print(f"direction:\n{d}")
         print(f"norm:\t{d_norm}")
         if(d_norm < eps):
-            return x
+            return ('optimal', x, v)
         if(i >= maxIter):
-            return x
+            return ('terminated', x, v)
         
         max_alpha = np.Inf
         for j in range(n):
