@@ -93,7 +93,7 @@ def project(d, u, a, lmb, d_lmb, eps=1e-6):
         r = np.dot(a, x)
                 
     return x
-    
+
 def SLBQP(Q, q, u, eps=1e-6, maxIter=1000): 
     n = int(len(q)/2)
     x = np.full(2*n, u/2)
@@ -110,16 +110,16 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
         #pdb.set_trace()
         v = np.dot(Qx,x) + np.dot(q, x)
         g = np.array(Qx + q)
-        d = np.array(x-g).flatten()
+        d = np.array(x-g)
     
         # Project the direction over the feasible region
         d = project(d, u, a, 0, 2)
         d = d - x
         
         d_norm = np.linalg.norm(d)
-        print(f"anti-gradient:\n{-g}")
-        print(f"direction:\n{d}")
-        print(f"norm:\t{d_norm}")
+#        print(f"anti-gradient:\n{-g}")
+#        print(f"direction:\n{d}")
+#        print(f"norm:\t{d_norm}")
         if(d_norm < eps):
             return ('optimal', x, v)
         if(i >= maxIter):
@@ -137,7 +137,7 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
         if(den <= 1e-16):
             alpha = max_alpha
         else:
-            alpha = min(max_alpha, np.dot(d, d)/den)
+            alpha = min(max_alpha, (d_norm**2)/den)
             
         #print(f"max_alpha:\t{max_alpha}")
         #print(f"den:\t{den}")

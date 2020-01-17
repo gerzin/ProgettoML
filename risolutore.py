@@ -6,5 +6,5 @@ from qpsolvers import solve_qp
 if __name__ == '__main__':
     args = get_cmdline_args()
     Q, q, _ = load_data(args.file, False)
-    G, A, h, b = build_problem(8, 10)
+    G, A, h, b = build_problem(len(q), 10)
     print(solve_qp(Q, q, G, h, A, b))
