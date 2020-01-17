@@ -10,6 +10,9 @@ def compute_x(d, lmb, a, u):
     return x
 
 def project(d, u, a, lmb, d_lmb, eps=1e-6):
+    """
+    
+    """
     # BRACKETING PHASE -----
     # ----------------------
     
@@ -93,8 +96,11 @@ def project(d, u, a, lmb, d_lmb, eps=1e-6):
         r = np.dot(a, x)
                 
     return x
-@time_it
+
 def SLBQP(Q, q, u, eps=1e-6, maxIter=1000): 
+    """
+
+    """
     n = int(len(q)/2)
     x = np.full(2*n, u/2)
     i = 1
@@ -117,9 +123,6 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
         d = d - x
         
         d_norm = np.linalg.norm(d)
-#        print(f"anti-gradient:\n{-g}")
-#        print(f"direction:\n{d}")
-#        print(f"norm:\t{d_norm}")
         if(d_norm < eps):
             return ('optimal', x, v)
         if(i >= maxIter):
@@ -139,11 +142,7 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
         else:
             alpha = min(max_alpha, (d_norm**2)/den)
             
-        #print(f"max_alpha:\t{max_alpha}")
-        #print(f"den:\t{den}")
-        #print(f"-g*d:\t{np.dot(-g,d)}")
-        #print(f"alpha:\t{alpha}")
-        
+                
         x = x + alpha * d
         
         i = i + 1

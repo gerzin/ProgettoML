@@ -54,6 +54,10 @@ def build_problem(n, u):
 def linear(x,y):
     return np.dot(x,y)
 
+def rbf(x,y, gamma=1):
+    a = np.dot(x-y, x-y)
+    return np.exp(-gamma*a)
+
 def compute_kernel_matrix(dataset, dot_product=linear):
     n = len(dataset)
     K = np.empty([n,n])
@@ -74,12 +78,11 @@ def prepare(K, eps, d, C):
         return
     
     # compute quadratic part of the Quadratic Problem
-    Q = np.empty([2*n,2*n])
-    Q[:n][:n] = K
-    Q[:n][n:] = -K
-    Q[n:][:n] = -K
-    Q[n:][n:] = K
-    
+    Q = np.block([
+        [K, -K],
+        [-K, K]
+    ])
+
     # compute linear part of the Quadratic Problem
     q = np.empty(2*n)
     q[:n] = eps - d
