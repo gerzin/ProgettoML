@@ -38,3 +38,19 @@ def build_problem(n, u):
     h[0:n] = u
     b = np.zeros(1)
     return G, A, h, b
+
+def linear(x,y):
+    return np.dot(x,y)
+
+def compute_kernel_matrix(dataset, dot_product=linear):
+    n = len(dataset)
+    K = np.empty([n,n])
+    
+    for i in range(n):
+        for j in range(i,n):
+            v = dot_product(dataset[i], dataset[j])
+            
+            K[i][j] = v
+            K[j][i] = v
+
+    return K
