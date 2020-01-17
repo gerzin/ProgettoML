@@ -93,6 +93,10 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
     x = np.full(2*n, u/2)
     i = 1
     
+    a = np.empty(2*n)
+    a[0:n] = np.ones(n)
+    a[n:] = - np.ones(n)
+    
     while True:
         # Compute function value (v), gradient (g) and descent direction (d)
         Qx = np.dot(Q, x)
@@ -103,14 +107,13 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
         d = np.array(x-g).flatten()
     
         # Project the direction over the feasible region
-        a = np.empty(2*n)
-        a[0:n] = np.ones(n)
-        a[n:] = - np.ones(n)
         d = project(d, u, a, 0, 2)
         d = d - x
         
         d_norm = np.linalg.norm(d)
-        print(d_norm)    
+        print(f"anti-gradient:\n{-g}")
+        print(f"direction:\n{d}")
+        print(f"norm:\t{d_norm}")
         if(d_norm < eps):
             return x
         if(i >= maxIter):
@@ -128,7 +131,7 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
         if(den <= 1e-16):
             alpha = max_alpha
         else:
-            alpha = min(max_alpha, np.dot(-g, d)/den)
+            alpha = min(max_alpha, np.dot(d, d)/den)
         
         x = x + alpha * d
         
