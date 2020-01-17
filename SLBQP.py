@@ -20,7 +20,7 @@ def project(d, u, a, lmb, d_lmb, eps=1e-6):
     if(r < 0):
         # start looking for a positive value of r
         
-        # update lower bounds and lambda
+        # initialize lower bounds and update lambda
         lmb_l = lmb; r_l = r;
         lmb += d_lmb
         
@@ -34,27 +34,33 @@ def project(d, u, a, lmb, d_lmb, eps=1e-6):
             s = max(r_l/r -1, 0.1); d_lmb += d_lmb/s; lmb += d_lmb
             
             # Compute x and r and check whether it found the minimum
-            x = compute_x(d, lmb, a, u)
-            r = np.dot(a, x)
+            x = compute_x(d, lmb, a, u); r = np.dot(a, x)
             if(abs(r) < eps): return x
         
         # initialize upper bounds
         lmb_u = lmb; r_u = r
 
     else:
+        # start looking for a negative value of r
+        
+        # initialize upper bounds and update lambda
         lmb_u = lmb; r_u = r; lmb -= d_lmb
-        x = compute_x(d, lmb, a, u)
-        r = np.dot(a, x)
+        
+        # Compute x and r and check whether it found the minimum
+        x = compute_x(d, lmb, a, u); r = np.dot(a, x)
         if(abs(r) < eps): return x
+        
         while(r > 0):
+            # update upper bounds and lambda
             lmb_u = lmb; r_u = r
-            s = max(r_u/r -1, 0.1); d_lmb += d_lmb/s
-            lmb -= d_lmb
-            x = compute_x(d, lmb, a, u)
-            r = np.dot(a, x)
+            s = max(r_u/r -1, 0.1); d_lmb += d_lmb/s; lmb -= d_lmb
+            
+            # Compute x and r and check whether it found the minimum
+            x = compute_x(d, lmb, a, u); r = np.dot(a, x)
             if(abs(r) < eps): return x
-        lmb_l = lmb
-        r_l = r
+        
+        # initialize lower bounds
+        lmb_l = lmb; r_l = r
     
     #secant phase
     s = 1 - r_l/r_u
@@ -132,6 +138,11 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
             alpha = max_alpha
         else:
             alpha = min(max_alpha, np.dot(d, d)/den)
+            
+        #print(f"max_alpha:\t{max_alpha}")
+        #print(f"den:\t{den}")
+        #print(f"-g*d:\t{np.dot(-g,d)}")
+        #print(f"alpha:\t{alpha}")
         
         x = x + alpha * d
         
