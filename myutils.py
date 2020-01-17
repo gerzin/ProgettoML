@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+from time import time
 
 def print_invocation(f):
     def wrapper(*args, **kwargs):
@@ -17,6 +18,16 @@ def dump_args(f):
 		return f(*args, **kwargs)
 	return wrapper
 
+
+def time_it(f):
+    def wrapper(*args, **kw):
+        ts = time()
+        result = f(*args, **kw)
+        te = time()
+        print(f"{f.__name__} took {te-ts}")
+        return result
+    return wrapper
+
 def get_cmdline_args():
     parser = argparse.ArgumentParser(description='Support Vector Regression using Gradient Projection.')    
     parser.add_argument('-f','--file', help='input csv file')
@@ -29,6 +40,7 @@ def load_data(csvfile, delfirst=True):
     Y_1, Y_2 = loaded_data[:,-2], loaded_data[:,-1]
     loaded_data = np.delete(np.delete(loaded_data, -1, 1), -1, 1)
     return loaded_data, Y_1, Y_2
+
 
 def build_problem(n, u):
     n2 = int(n/2)

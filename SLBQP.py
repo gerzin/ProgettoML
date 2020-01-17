@@ -93,7 +93,7 @@ def project(d, u, a, lmb, d_lmb, eps=1e-6):
         r = np.dot(a, x)
                 
     return x
-
+@time_it
 def SLBQP(Q, q, u, eps=1e-6, maxIter=1000): 
     n = int(len(q)/2)
     x = np.full(2*n, u/2)
