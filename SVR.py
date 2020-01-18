@@ -38,7 +38,7 @@ class SVR:
             d+= self.gammas[i]*self.ker(pattern,self.data[i])
         return d
 
-    def _compute_kernel_matrix(self,dataset, dot_product=linear):
+    def _compute_kernel_matrix(self,dataset, dot_product):
         n = len(dataset)
         K = np.empty([n,n])
         

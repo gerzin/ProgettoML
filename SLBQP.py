@@ -101,6 +101,7 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
     """
 
     """
+    assert len(q)%2 == 0
     n = int(len(q)/2)
     x = np.full(2*n, u/2)
     i = 1
