@@ -35,7 +35,7 @@ class SVR:
 
     def predict(self, pattern):
         d = 0
-        for i in range(len(pattern)):
+        for i in range(len(self.data)):
             d+= self.gammas[i]*self.ker(pattern,self.data[i])
         return d
 
