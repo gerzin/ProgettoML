@@ -9,13 +9,10 @@ def rbf(x,y, gamma=1):
     a = np.dot(x-y, x-y)
     return np.exp(-gamma*a)
 
-
-
 class SVR:
     """
     Support Vector Regressor
     """
-    
     def __init__(self, ker=rbf, gamma=1, C=1, eps=0.1, tol=1e-3, maxIter=1000):
         self.ker = rbf
         self.gamma = gamma
@@ -23,6 +20,8 @@ class SVR:
         self.eps = eps
         self.tol = tol
         self.maxIter = maxIter
+        self.data = None
+        self.gammas = None
     
     def fit(self,X, y):
         K = self._compute_kernel_matrix(X, self.ker)
@@ -39,7 +38,7 @@ class SVR:
             d+= self.gammas[i]*self.ker(pattern,self.data[i])
         return d
 
-    def _compute_kernel_matrix(self,dataset, dot_product=linear):
+    def _compute_kernel_matrix(self,dataset, dot_product):
         n = len(dataset)
         K = np.empty([n,n])
         
@@ -81,6 +80,15 @@ class SVR:
         a = x[:n]
         a1 = x[n:]
         return a-a1
+    
+    def __repr__(self):
+        s = "SVR:\n"
+        paramNames = ["kernel", "gamma", "C", "eps", "tol", "maxIter", "data", "gammas"]
+        infos = [str(x) for x in \
+                    [self.ker.__name__,self.gamma, self.C, self.eps, self.tol, self.maxIter, self.data, self.gammas]]
+        
+        return s + "\n".join([f"{a}={b}" for a,b in zip(paramNames, infos)])
+
         
 
 
