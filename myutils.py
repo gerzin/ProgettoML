@@ -33,14 +33,32 @@ def get_cmdline_args():
     parser.add_argument('-f','--file', help='input csv file')
     return parser.parse_args()
 
-def load_data(csvfile, delfirst=True):
+def load_data(csvfile, delfirst=True, shuffle=False):
+    """Load a matrix from a csv file.
+    
+    Params:
+        delfirst -- delete the first column of the matrix.
+        shuffle -- shuffle the rows of the matrix
+
+    """
     loaded_data = np.loadtxt(csvfile, dtype=np.float64, delimiter=',')
     if delfirst:
         loaded_data = np.delete(loaded_data, 0, 1)
+    if shuffle:
+        np.random.shuffle(loaded_data)
     Y_1, Y_2 = loaded_data[:,-2], loaded_data[:,-1]
     loaded_data = np.delete(np.delete(loaded_data, -1, 1), -1, 1)
     return loaded_data, Y_1, Y_2
 
+def shuffleRows(M):
+    """Shuffles the rows of a matrix"""
+    np.random.shuffle(M)
+
+def splitHorizontally(matrix, percentage):
+    """Splits matrix into two matrices."""
+    assert 0<= percentage <= 1
+    lenM1 = round(matrix.shape[0]*percentage)
+    return matrix[0:lenM1], matrix[lenM1:]
 
 def build_problem(n, u):
     n2 = int(n/2)
