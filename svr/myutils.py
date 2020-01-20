@@ -40,9 +40,9 @@ def load_data(csvfile, delfirst=True, shuffle=False, split=True):
     """Load a matrix from a csv file.
     
     Params:
-        delfirst -- delete the first column of the matrix.
-        shuffle -- shuffle the rows of the matrix
-
+        delfirst    -- delete the first column of the matrix.
+        shuffle     -- shuffle the rows of the matrix
+        split       -- separate the last two column from the main matrix
     """
     loaded_data = np.loadtxt(csvfile, dtype=np.float64, delimiter=',')
     if delfirst:
