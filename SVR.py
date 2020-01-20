@@ -40,6 +40,7 @@ class SVR:
         self.maxIter = maxIter
         self.data = None
         self.gammas = None
+        self.bias = 0
     
     def fit(self,X, y):
         #K = self._compute_kernel_matrix(X, self.ker)
@@ -50,9 +51,10 @@ class SVR:
             print("maxIter reached")
         self.data = X
         self.gammas = self._compute_gammas(x)
+        self.bias = self._compute_bias(y)
 
     def predict(self, pattern):
-        d = 0
+        d = self.bias
         for i in range(len(self.data)):
             d+= self.gammas[i]*self.ker(pattern,self.data[i])
         return d
@@ -107,6 +109,17 @@ class SVR:
     def load(self, filename):
         """load the regressor parameters from a file"""
         pass
+    
+    def _compute_bias(self, y):
+        cont = 0
+        bias = 0
+        for i in range(len(self.gammas)):
+            gamma = self.gammas[i]
+            if(gamma > 0 and gamma < self.C):
+                cont += 1
+                bias += y[i] - self.predict(self.data[i])
+        
+        return bias/cont
     
     def __repr__(self):
         s = "SVR:\n"
