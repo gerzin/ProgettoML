@@ -1,13 +1,31 @@
 from myutils import *
 import numpy as np
 from SLBQP import SLBQP
+from numba import jit, jitclass, int32, float32, float64
 
 def linear(x,y):
     return np.dot(x,y)
 
+@jit(nopython=True)
 def rbf(x,y, gamma=1):
     a = np.dot(x-y, x-y)
     return np.exp(-gamma*a)
+
+
+@jit(nopython=True)
+def compute_K_matrix(dataset):
+    n = len(dataset)
+    K = np.empty((n,n), np.float64)
+    for i in range(n):
+        for j in range(i,n):
+            #inlined rbf
+            diff = dataset[i] - dataset[j]
+            a = np.dot(diff, diff)
+            v = np.exp(-a)
+            #v = rbf(dataset[i], dataset[j])
+            K[i][j] = v
+            K[j][i] = v
+    return K
 
 class SVR:
     """
@@ -24,7 +42,8 @@ class SVR:
         self.gammas = None
     
     def fit(self,X, y):
-        K = self._compute_kernel_matrix(X, self.ker)
+        #K = self._compute_kernel_matrix(X, self.ker)
+        K = compute_K_matrix(X)
         Q, q, a = self._prepare(K, y)
         status, x, e = SLBQP(Q, q, self.C, self.tol, self.maxIter)
         if status == 'terminated':
@@ -80,6 +99,14 @@ class SVR:
         a = x[:n]
         a1 = x[n:]
         return a-a1
+
+    def save(self, filename):
+        """Save the regressor parameters on a file"""
+        pass
+
+    def load(self, filename):
+        """load the regressor parameters from a file"""
+        pass
     
     def __repr__(self):
         s = "SVR:\n"

@@ -1,7 +1,9 @@
 import numpy as np
 import pdb
 from myutils import *
+from numba import jit
 
+@jit(nopython=True, parallel=True)
 def compute_x(d, lmb, a, u):
     x = d + lmb*a
     for i in range(len(x)):
@@ -9,6 +11,8 @@ def compute_x(d, lmb, a, u):
         elif(x[i] < 0): x[i] = 0
     return x
 
+
+@jit(nopython=True)
 def project(d, u, a, lmb, d_lmb, eps=1e-6):
     """
     
@@ -97,6 +101,7 @@ def project(d, u, a, lmb, d_lmb, eps=1e-6):
                 
     return x
 
+#@jit(nopython=False)
 def SLBQP(Q, q, u, eps=1e-6, maxIter=1000): 
     """
 
@@ -116,7 +121,8 @@ def SLBQP(Q, q, u, eps=1e-6, maxIter=1000):
 
         #pdb.set_trace()
         v = np.dot(Qx,x) + np.dot(q, x)
-        g = np.array(Qx + q)
+        g = np.array(Qx+q)
+        
         d = np.array(x-g)
     
         # Project the direction over the feasible region

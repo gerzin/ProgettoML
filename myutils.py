@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 from time import time
+from numba import jit
 
 def print_invocation(f):
     def wrapper(*args, **kwargs):
@@ -33,6 +34,7 @@ def get_cmdline_args():
     parser.add_argument('-f','--file', help='input csv file')
     return parser.parse_args()
 
+#@jit(nopython=True)
 def load_data(csvfile, delfirst=True, shuffle=False):
     """Load a matrix from a csv file.
     
@@ -50,16 +52,19 @@ def load_data(csvfile, delfirst=True, shuffle=False):
     loaded_data = np.delete(np.delete(loaded_data, -1, 1), -1, 1)
     return loaded_data, Y_1, Y_2
 
+@jit(nopython=True)
 def shuffleRows(M):
     """Shuffles the rows of a matrix"""
     np.random.shuffle(M)
 
+@jit(nopython=True)
 def splitHorizontally(matrix, percentage):
-    """Splits matrix into two matrices."""
+    """Split matrix horizontally and returns the two matrices."""
     assert 0<= percentage <= 1
     lenM1 = round(matrix.shape[0]*percentage)
     return matrix[0:lenM1], matrix[lenM1:]
 
+@jit(nopython=True)
 def build_problem(n, u):
     n2 = int(n/2)
     G = np.block([[np.eye(n)], [-np.eye(n)]])
@@ -69,13 +74,16 @@ def build_problem(n, u):
     b = np.zeros(1)
     return G, A, h, b
 
+@jit(nopython=True)
 def linear(x,y):
     return np.dot(x,y)
 
+@jit(nopython=True)
 def rbf(x,y, gamma=1):
     a = np.dot(x-y, x-y)
     return np.exp(-gamma*a)
 
+@jit(nopython=True)
 def compute_kernel_matrix(dataset, dot_product=linear):
     n = len(dataset)
     K = np.empty([n,n])
@@ -89,6 +97,7 @@ def compute_kernel_matrix(dataset, dot_product=linear):
 
     return K
 
+@jit(nopython=True)
 def prepare(K, eps, d, C):
     (n,m) = K.shape
     if(n != m):
@@ -112,3 +121,10 @@ def prepare(K, eps, d, C):
     a[n:] = -1.
     
     return Q,q,C,a
+
+def bias(X,f, Y):
+    values = [ f(x) for x in X ]
+    v = np.array(values)
+    d = v - Y
+    #return sum(d)/len(d)
+    return np.average(d)
