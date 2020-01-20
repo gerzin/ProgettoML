@@ -9,4 +9,5 @@ pyparsing==2.4.6
 python-dateutil==2.8.1
 qpsolvers==1.0.7
 quadprog==0.1.7
+scipy==1.4.1
 six==1.13.0
