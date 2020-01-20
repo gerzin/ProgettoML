@@ -51,9 +51,6 @@ class SVR:
             print("maxIter reached")
         self.data = X
         self.gammas = self._compute_gammas(x)
-        for i in self.gammas:
-            if 0 < abs(i) <= 1e-4:
-                print(i)
         self.bias = self._compute_bias(y)
 
     def predict(self, pattern):
