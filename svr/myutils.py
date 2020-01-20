@@ -29,10 +29,10 @@ def time_it(f):
         return result
     return wrapper
 
-def get_cmdline_args():
-    parser = argparse.ArgumentParser(description='Support Vector Regression using Gradient Projection.')    
+def get_cmdline_args(descr='Support Vector Regression using Gradient Projection.'):
+    parser = argparse.ArgumentParser(description=descr)
     parser.add_argument('-f','--file', help='input csv file')
-    parser.add_argument('-p', '--percentage', help="percentage ")
+    parser.add_argument('-p', '--percentage', help="percentage", type=float)
     return parser.parse_args()
 
 #@jit(nopython=True)

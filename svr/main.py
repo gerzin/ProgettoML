@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     Yscaled, M, m = scale(Y2)
     if args.percentage is not None:
-    	X, V = splitHorizontally(X, float(args.percentage))
-    	Y, YV = splitHorizontally(Yscaled, float(args.percentage))
+    	X, V = splitHorizontally(X, args.percentage)
+    	Y, YV = splitHorizontally(Yscaled, args.percentage)
 
     regressor.fit(X, Y)
