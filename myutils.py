@@ -98,6 +98,16 @@ def compute_kernel_matrix(dataset, dot_product=linear):
     return K
 
 @jit(nopython=True)
+def scale(arr):
+    M, m = max(arr), min(arr)
+    scaled = (arr-m)/(M - m)
+    return scaled, M, m
+
+@jit(nopython=True)
+def scale_back(scaled, M, m):
+    return scaled*(M-m)+m
+
+@jit(nopython=True)
 def prepare(K, eps, d, C):
     (n,m) = K.shape
     if(n != m):
@@ -122,9 +132,3 @@ def prepare(K, eps, d, C):
     
     return Q,q,C,a
 
-def bias(X,f, Y):
-    values = [ f(x) for x in X ]
-    v = np.array(values)
-    d = v - Y
-    #return sum(d)/len(d)
-    return np.average(d)

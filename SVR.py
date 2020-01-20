@@ -13,7 +13,7 @@ def rbf(x,y, gamma=1):
 
 
 @jit(nopython=True)
-def compute_K_matrix(dataset):
+def compute_K_matrix(dataset, gamma=1):
     n = len(dataset)
     K = np.empty((n,n), np.float64)
     for i in range(n):
@@ -21,7 +21,7 @@ def compute_K_matrix(dataset):
             #inlined rbf
             diff = dataset[i] - dataset[j]
             a = np.dot(diff, diff)
-            v = np.exp(-a)
+            v = np.exp(-gamma*a)
             #v = rbf(dataset[i], dataset[j])
             K[i][j] = v
             K[j][i] = v
@@ -51,6 +51,9 @@ class SVR:
             print("maxIter reached")
         self.data = X
         self.gammas = self._compute_gammas(x)
+        for i in self.gammas:
+            if 0 < abs(i) <= 1e-4:
+                print(i)
         self.bias = self._compute_bias(y)
 
     def predict(self, pattern):
@@ -115,7 +118,7 @@ class SVR:
         bias = 0
         for i in range(len(self.gammas)):
             gamma = self.gammas[i]
-            if(gamma > 0 and gamma < self.C):
+            if 0< gamma < self.C:
                 cont += 1
                 bias += y[i] - self.predict(self.data[i])
         
@@ -123,9 +126,9 @@ class SVR:
     
     def __repr__(self):
         s = "SVR:\n"
-        paramNames = ["kernel", "gamma", "C", "eps", "tol", "maxIter", "data", "gammas"]
+        paramNames = ["kernel", "gamma", "C", "eps", "tol", "maxIter", "data", "gammas", "bias"]
         infos = [str(x) for x in \
-                    [self.ker.__name__,self.gamma, self.C, self.eps, self.tol, self.maxIter, self.data, self.gammas]]
+                    [self.ker.__name__,self.gamma, self.C, self.eps, self.tol, self.maxIter, self.data, self.gammas, self.bias]]
         
         return s + "\n".join([f"{a}={b}" for a,b in zip(paramNames, infos)])
 
