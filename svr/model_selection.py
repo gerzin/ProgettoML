@@ -40,18 +40,21 @@ if __name__ == '__main__':
     args = get_cmdline_args()
     print("loading data...")
     X, Y1, Y2 = load_data(args.file)
-
-    print("scaling data...")
-    if args.column == 1:
-        Yscaled, M, m = scale(Y1)
-    else:
-        Yscaled, M, m = scale(Y2)
-   
-    print(f"{args.kfold}-folding...")
-    ind = k_fold_split_indices(X, Yscaled, args.kfold)
+    Y, M, m = None, None, None
     
-    print(f"X shape = {X.shape}")
-    print(k_fold_evaluate(X, Yscaled, args.kfold, ind))
+    if args.column == 1:
+        Y = Y1
+    else:
+        Y = Y2
+
+    if args.scale:
+        print("scaling data...")
+        Y, M, m = scale(Y)
+
+    print(f"{args.kfold}-folding...")
+    ind = k_fold_split_indices(X, Y, args.kfold)
+    
+    print(k_fold_evaluate(X, Y, args.kfold, ind))
 
     sys.exit()
     regressor = SVR(maxIter=3000, eps=1e-4)
