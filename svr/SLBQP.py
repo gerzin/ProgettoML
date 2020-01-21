@@ -1,6 +1,5 @@
 import numpy as np
-import pdb
-from myutils import *
+#from myutils import *
 from numba import jit
 
 @jit(nopython=True, parallel=True)

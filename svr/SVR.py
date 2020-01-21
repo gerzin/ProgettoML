@@ -13,6 +13,7 @@ def rbf(x,y, gamma=1):
     return np.exp(-gamma*a)
 
 
+@print_invocation
 @jit(nopython=True)
 def compute_K_matrix(dataset, gamma=1):
     n = len(dataset)

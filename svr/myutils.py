@@ -31,8 +31,10 @@ def time_it(f):
 
 def get_cmdline_args(descr='Support Vector Regression using Gradient Projection.'):
     parser = argparse.ArgumentParser(description=descr)
-    parser.add_argument('-f','--file', help='input csv file')
+    parser.add_argument('-f','--file', help='input csv file', required=True)
     parser.add_argument('-p', '--percentage', help="percentage", type=float)
+    parser.add_argument('-c', '--column', help="target column (1 or 2)", type=int, choices=[1,2])
+    parser.add_argument('-k', '--kfold', help="parameter for k-fold validation", type=int)
     return parser.parse_args()
 
 #@jit(nopython=True)
