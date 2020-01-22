@@ -24,17 +24,18 @@ def test_validation_split(X,Y, s, f):
     vals_targ = Y[s:f]
     return trs, trs_targ, vals, vals_targ
 
-def k_fold_evaluate(X, Y, k, ind):
+def k_fold_evaluate(X, Y, k, ind, gamma, C, eps, maxIter):
     err = 0
     for i in range(k):
         print("start iteration")
-        reg = SVR(maxIter=2000)        
+        reg = SVR(gamma=gamma, C=C, eps=eps, maxIter=maxIter)        
         trs, trs_targ, vals, vals_targ = test_validation_split(X,Y,ind[i], ind[i+1])
         reg.fit(trs, trs_targ)
         err += reg.evaluateMSE(vals, vals_targ)
         print(f"iteration {i} completed, err: {err}")
-    
-    return err/k
+    err = err/k
+    dump_svr_params("test.csv", (gamma, C, eps, maxIter, err))
+    return err
 
 if __name__ == '__main__':
     args = get_cmdline_args()
@@ -54,7 +55,7 @@ if __name__ == '__main__':
     print(f"{args.kfold}-folding...")
     ind = k_fold_split_indices(X, Y, args.kfold)
     
-    print(k_fold_evaluate(X, Y, args.kfold, ind))
+    print(k_fold_evaluate(X, Y, args.kfold, ind, 1, 12, 0.05, 3000))
 
     sys.exit()
     regressor = SVR(maxIter=3000, eps=1e-4)

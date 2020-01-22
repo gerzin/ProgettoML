@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 from time import time
 from numba import jit
+import csv
 
 def print_invocation(f):
     def wrapper(*args, **kwargs):
@@ -19,6 +20,10 @@ def dump_args(f):
 		return f(*args, **kwargs)
 	return wrapper
 
+def dump_svr_params(filename, tuples):
+    with open(filename, "a") as csvfile:
+        csv_out = csv.writer(csvfile)
+        csv_out.writerow(tuples)
 
 def time_it(f):
     def wrapper(*args, **kw):

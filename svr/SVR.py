@@ -18,6 +18,13 @@ def compute_rbf_matrix(dataset, gamma=1):
             K[j][i] = v
     return K
 
+@jit(nopython=True)	
+def rbf(x,y, gamma=1):	
+    diff = x-y
+    a = np.dot(diff, diff)	
+    return np.exp(-gamma*a)	
+
+
 #@jit(nopython=True)
 def MSE(outputs, targets):
     return np.square(outputs - targets).mean()
@@ -33,7 +40,7 @@ class SVR:
     """
     Support Vector Regressor
     """
-    def __init__(self, ker='rbf', gamma=1, C=1, eps=0.1, tol=1e-3, maxIter=1000):
+    def __init__(self, ker=rbf, gamma=1, C=1, eps=0.1, tol=1e-3, maxIter=1000):
         self.ker = ker
         self.gamma = gamma
         self.C = C
@@ -112,7 +119,7 @@ class SVR:
         s = "SVR:\n"
         paramNames = ["kernel", "gamma", "C", "eps", "tol", "maxIter", "data", "gammas", "bias"]
         infos = [str(x) for x in \
-                    [self.ker,self.gamma, self.C, self.eps, self.tol, self.maxIter, self.data, self.gammas, self.bias]]
+                    [self.ker.__name__, self.gamma, self.C, self.eps, self.tol, self.maxIter, self.data, self.gammas, self.bias]]
         
         return s + "\n".join([f"{a}={b}" for a,b in zip(paramNames, infos)])
 
