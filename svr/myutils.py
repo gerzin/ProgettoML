@@ -41,6 +41,7 @@ def get_cmdline_args(descr='Support Vector Regression using Gradient Projection.
     parser.add_argument('-c', '--column', help="target column (1 or 2)", type=int, choices=[1,2])
     parser.add_argument('-k', '--kfold', help="parameter for k-fold validation", type=int)
     parser.add_argument('-s', '--scale', help="scale the data", action='store_true')
+#    parser.add_argument('-a', '--arguments',  nargs='+', help='gamma C eps tol', required=False)
     return parser.parse_args()
 
 #@jit(nopython=True)
