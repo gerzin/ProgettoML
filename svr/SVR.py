@@ -22,6 +22,12 @@ def compute_rbf_matrix(dataset, gamma=1):
 def MSE(outputs, targets):
     return np.square(outputs - targets).mean()
 
+def MEE(outputs, targets):
+    err = 0
+    for (o,t) in (outputs,targets):
+        err += np.linalg.norm(o - t)
+    return err(len(outputs))
+
 
 class SVR:
     """
