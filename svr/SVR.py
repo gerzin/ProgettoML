@@ -26,7 +26,7 @@ def MEE(outputs, targets):
     err = 0
     for (o,t) in (outputs,targets):
         err += np.linalg.norm(o - t)
-    return err(len(outputs))
+    return err/len(outputs)
 
 
 class SVR:
