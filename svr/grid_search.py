@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 import numpy as np
 from numba import njit
+import sys
 from myutils import *
 from inspect import signature
 from SVR import *
 import itertools as it
 from model_selection import *
+import math
+
+def random_sampling(arr, n)
 
 class GridSearcher:
     def __init__(self, reg, ranges=None):
@@ -24,13 +28,18 @@ class GridSearcher:
     def _generate_grid(self):
         print("generating grid...")
         self.grid = it.product(*self.ranges)
-
+        self.grid = [i for i in self.grid]
+    
     def start_search(self, X, Y, k):
         print("starting grid search...")
         ind = k_fold_split_indices(X,Y,k)
+        #treshold
+        th = math.inf
         for i in self.grid:
             gamma, C, eps, tol, maxIter = i
-            err = k_fold_evaluate(X, Y, k, ind, gamma, C, eps, maxIter)
+            err = k_fold_evaluate(X, Y, k, ind, gamma, C, eps, maxIter, threshold=th)
+            if 0 <= err < th:
+                th = k*err 
 
 if __name__ == '__main__':
     
@@ -38,6 +47,9 @@ if __name__ == '__main__':
     print("loading data...")
     X, Y1, Y2 = load_data(args.file)
     Y, M, m = None, None, None
+    if args.kfold is None:
+        print("Error: -k [n] needed")
+        sys.exit(1)
 
     if args.column == 1:
         Y = Y1
@@ -47,13 +59,14 @@ if __name__ == '__main__':
     if args.scale:
         print("scaling data...")
         Y, M, m = scale(Y) 
-    
+    #intervals for grid search
     gamma = [10**i for i in range(-3, 2)]
     C = [10**i for i in range(-1, 4)]
     eps = [i for i in np.linspace(0.01, 1, num=5)]
     tol = [1e-3]
     maxiter = [5000]
     ranges = (gamma, C, eps, tol, maxiter)
+    
     gs = GridSearcher(SVR, ranges)
     gs.start_search(X,Y,args.kfold)
 
