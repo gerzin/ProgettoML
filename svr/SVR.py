@@ -67,7 +67,7 @@ class SVR:
     def predict(self, pattern):
         d = self.bias
         for i in range(len(self.data)):
-            d+= self.gammas[i]*self.ker(pattern,self.data[i])
+            d+= self.gammas[i]*self.ker(pattern,self.data[i], self.gamma)
         return d
 
     def _prepare(self, K, d):
