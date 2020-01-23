@@ -105,10 +105,14 @@ class SVR:
         bias = 0
         for i in range(len(self.gammas)):
             gamma = self.gammas[i]
-            if 0< gamma <= self.C:
+            if 0< gamma < self.C:
                 cont += 1
                 bias += y[i] - self.predict(self.data[i])
-        return bias/cont
+        if(cont == 0):
+            print("Error: no support vectors")
+            return 0
+        else:
+            return bias/cont
     
     def evaluateMSE(self, patterns, targets):
         outputs = [self.predict(x) for x in patterns]
