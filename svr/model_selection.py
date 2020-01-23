@@ -55,7 +55,7 @@ if __name__ == '__main__':
     print(f"{args.kfold}-folding...")
     ind = k_fold_split_indices(X, Y, args.kfold)
     
-    print(k_fold_evaluate(X, Y, args.kfold, ind, 1, 12, 0.05, 3000))
+    print(k_fold_evaluate(X, Y, args.kfold, ind, 1/20, 12, 0.05, 5000))
 
     sys.exit()
     regressor = SVR(maxIter=3000, eps=1e-4)
