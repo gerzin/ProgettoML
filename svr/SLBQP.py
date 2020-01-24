@@ -1,6 +1,6 @@
 import numpy as np
 #from myutils import *
-from numba import jit
+from numba import jit, njit, f8, i4
 
 @jit(nopython=True, parallel=True)
 def compute_x(d, lmb, a, u):
@@ -100,7 +100,7 @@ def project(d, u, a, lmb, d_lmb, eps=1e-6):
                 
     return x
 
-#@jit(nopython=False)
+@jit('f8(f8[f8[:]], f8[:], f8, f8[:], f8[:], f8, i4)',nopython=True)
 def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000): 
     """
 
@@ -126,9 +126,11 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000):
         
         d_norm = np.linalg.norm(d)
         if(d_norm < eps):
-            return ('optimal', x, v)
+            #return ('optimal', x, v)
+            return x
         if(i >= maxIter):
-            return ('terminated', x, v)
+            return x
+            #return ('terminated', x, v)
         
         max_alpha = np.Inf
         for j in range(n):

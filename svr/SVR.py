@@ -25,17 +25,6 @@ def rbf(x,y, gamma=1):
     return np.exp(-gamma*a)	
 
 
-#@jit(nopython=True)
-def MSE(outputs, targets):
-    return np.square(outputs - targets).mean()
-
-def MEE(outputs, targets):
-    err = 0
-    for (o,t) in (outputs,targets):
-        err += np.linalg.norm(o - t)
-    return err/len(outputs)
-
-
 class SVR:
     """
     Support Vector Regressor
@@ -56,7 +45,8 @@ class SVR:
         Q, q, a = self._prepare(K, y)
 
         x = np.full(len(q), self.C/2)
-        status, x, e = SLBQP(Q, q, self.C, a, x, self.tol, self.maxIter)
+        #status, x, e = SLBQP(Q, q, self.C, a, x, self.tol, self.maxIter)
+        status, x, e = 'a', SLBQP(Q, q, self.C, a, x, self.tol, self.maxIter), 0
         if status == 'terminated':
             print("maxIter reached")
 
@@ -110,14 +100,10 @@ class SVR:
                 bias += y[i] - self.predict(self.data[i])
         if(cont == 0):
             print("Error: no support vectors")
-            return 0
+            return y[0] - self.predict(self.data[0])
         else:
             return bias/cont
-    
-    def evaluateMSE(self, patterns, targets):
-        outputs = [self.predict(x) for x in patterns]
-        return MSE(outputs, targets)
-    
+
     
     def __repr__(self):
         s = "SVR:\n"

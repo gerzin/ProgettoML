@@ -1,9 +1,12 @@
 import numpy as np
+from myutils import dump_svr_params
 from SVR import SVR
+from numba import jit, njit
 
 '''
 Estimate the error of the model
 '''
+#@njit()
 def compute_error(svr, patterns, targets, M=None, m=None, err='mse'):
     outputs = [ svr.predict(x) for x in patterns ]
     if M and m:
@@ -11,6 +14,8 @@ def compute_error(svr, patterns, targets, M=None, m=None, err='mse'):
     
     if err == 'mse':
         e = np.square(outputs - targets).mean()
+    elif err == 'mee':
+        e = np.absolute(outputs - targets).mean()
     
     return e
 
@@ -34,6 +39,7 @@ def scale_back(scaled, M, m):
 '''
 Return the indeces for dividing the folds
 '''
+@njit()
 def k_fold_indeces(n, k):
     fold_size = int(n/k)
     return [ i*fold_size for i in range(k) ] + [n]
@@ -43,6 +49,7 @@ def k_fold_indeces(n, k):
 Split the dataset in training and validation set
 according to the given interval
 '''
+#@njit()
 def split_dataset(X,Y, start,end):
     vs_interval = [range(start,end)]
     
@@ -56,18 +63,32 @@ def split_dataset(X,Y, start,end):
 
 
 '''
+params = [gamma, C, eps, tol, maxIter]
 '''
-def k_fold_evaluate(X, y, k, folds, params, scaleY=False):
+#@njit()
+def k_fold_evaluate(X, y, k, folds, params, threshold=np.Inf, scaleY=False):
     err = 0
     M = None
     m = None
+    stopped = False
+    
     for i in range(k):
+        if err > threshold:
+            stopped = True
+            break
         tr,tr_y, vs,vs_y = split_dataset(X,y, folds[i],folds[i+1])
         if(scaleY):
             tr_y, M, m = scale(tr_y)
         svr = SVR(gamma=params[0], C=params[1], eps=params[2], tol=params[3], maxIter=params[4])
         svr.fit(tr, tr_y)
         err += compute_error(svr, vs, vs_y, M, m)
-    err = err/k
+        
+    if stopped:
+        print(f"Stopped early: Threshold= {threshold}, Err= {err}")
+        err = -1
+    else:
+        err = err/k
+
+    dump_svr_params("test.csv", (params[0], params[1], params[2], params[4], err))
     return err
         
