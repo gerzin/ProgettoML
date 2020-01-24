@@ -5,6 +5,10 @@ from numba import jit
 import csv
 
 def print_invocation(f):
+    """Decorator that prints when a function has been invocated and when it returns.
+    
+    It also prints the return value.
+    """
     def wrapper(*args, **kwargs):
         print(f"{f.__name__} called")
         ret = f(*args, **kwargs)
@@ -13,6 +17,7 @@ def print_invocation(f):
     return wrapper
 
 def dump_args(f):
+    """Decorator that prints when a function has been invocated and its parameters."""
 	argnames = f.__code__.co_varnames
 	def wrapper(*args, **kwargs):
 		argval = ','.join('%s=%r' % entry for entry in zip(argnames, args) )
@@ -21,11 +26,18 @@ def dump_args(f):
 	return wrapper
 
 def dump_svr_params(filename, tuples):
+    """Write (append) on a file a tuple in csv format.
+    
+    Params:
+        filename    -- name of the file.
+        tuples      -- the tuple to write
+    """
     with open(filename, "a") as csvfile:
         csv_out = csv.writer(csvfile)
         csv_out.writerow(tuples)
 
 def time_it(f):
+    """Decorator that prints the time in seconds the function took to run."""
     def wrapper(*args, **kw):
         ts = time()
         result = f(*args, **kw)
@@ -35,6 +47,10 @@ def time_it(f):
     return wrapper
 
 def get_cmdline_args(descr='Support Vector Regression using Gradient Projection.'):
+    """Utility to parse the command line arguments.
+
+    It returns an object containing a mapping <param name, param value>.
+    """
     parser = argparse.ArgumentParser(description=descr)
     parser.add_argument('-f','--file', help='input csv file', required=True)
     parser.add_argument('-p', '--percentage', help="percentage", type=float)
@@ -79,6 +95,9 @@ def splitHorizontally(matrix, percentage):
 
 @jit(nopython=True)
 def build_problem(n, u):
+    """
+
+    """
     n2 = int(n/2)
     G = np.block([[np.eye(n)], [-np.eye(n)]])
     A = np.block([ [np.ones(n2), -np.ones(n2) ]])
@@ -122,6 +141,7 @@ def scale_back(scaled, M, m):
 
 @jit(nopython=True)
 def prepare(K, eps, d, C):
+    """Prepare thr problem."""
     (n,m) = K.shape
     if(n != m):
         print("matrix must be square")
@@ -145,3 +165,13 @@ def prepare(K, eps, d, C):
     
     return Q,q,C,a
 
+def extract_best_configs(filename, n=1):
+    """Extract the best n configurations from a file.
+    Params:
+        filename    -- name of the csv file.
+        n           -- number of config to extract
+    """
+    f = np.loadtxt(filename, delimiter=',')
+    f = list(filter(lambda x : x[4] >= 0, f))
+    s = sorted(f, key = lambda x : x[4]) #sort error-wise
+    return s[0:n]
