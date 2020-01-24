@@ -30,9 +30,7 @@ class GridSearcher:
         print("generating grid...")
         self.grid = it.product(*self.ranges)
         self.grid = [i for i in self.grid]
-        for (a,b) in enumerate(self.grid):
-            print(f"{a} - {b}")
-        sys.exit()
+
     def start_search(self, X, Y, k):
         print("starting grid search...")
         ind = k_fold_split_indices(X,Y,k)
@@ -40,7 +38,8 @@ class GridSearcher:
         th = math.inf
         for i in self.grid:
             gamma, C, eps, tol, maxIter = i
-            err = k_fold_evaluate(X, Y, k, ind, gamma, C, eps, maxIter, threshold=th)
+            err = k_fold_evaluate(X, Y, k, ind, [gamma, C, eps, tol, maxIter], threshold=th)
+            print(f"{gamma}\t{C}\t{eps}: {err}")
             if 0 <= err < th:
                 th = k*err 
 

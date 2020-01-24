@@ -99,7 +99,7 @@ class SVR:
                 cont += 1
                 bias += y[i] - self.predict(self.data[i])
         if(cont == 0):
-            print("Error: no support vectors")
+            print("Warning: No support vectors")
             return y[0] - self.predict(self.data[0])
         else:
             return bias/cont
