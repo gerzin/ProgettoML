@@ -9,7 +9,8 @@ import itertools as it
 from model_selection import *
 import math
 
-def random_sampling(arr, n)
+def random_sampling(arr, n):
+    pass
 
 class GridSearcher:
     def __init__(self, reg, ranges=None):
@@ -29,7 +30,9 @@ class GridSearcher:
         print("generating grid...")
         self.grid = it.product(*self.ranges)
         self.grid = [i for i in self.grid]
-    
+        for (a,b) in enumerate(self.grid):
+            print(f"{a} - {b}")
+        sys.exit()
     def start_search(self, X, Y, k):
         print("starting grid search...")
         ind = k_fold_split_indices(X,Y,k)
