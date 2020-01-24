@@ -7,7 +7,7 @@ import pickle
 import math
 import sys
 from numba import jit
-
+from validation_utils import k_fold_evaluate
 
 @jit(nopython=True)
 def k_fold_split_indices(X, Y, k):
@@ -25,25 +25,6 @@ def test_validation_split(X,Y, s, f):
     vals_targ = Y[s:f]
     return trs, trs_targ, vals, vals_targ
 
-def k_fold_evaluate(X, Y, k, ind, gamma, C, eps, maxIter, threshold=math.inf):
-    err = 0
-    stopped = False
-    for i in range(k):
-        reg = SVR(gamma=gamma, C=C, eps=eps, maxIter=maxIter)        
-        trs, trs_targ, vals, vals_targ = test_validation_split(X,Y,ind[i], ind[i+1])
-        reg.fit(trs, trs_targ)
-        err += reg.evaluateMSE(vals, vals_targ)
-        print(f"iteration {i} completed, err: {err}")
-        if err > threshold:
-            stopped = True
-            break
-    err = err/k
-    if stopped:
-        print(f"stopped early. Err = {err}")
-        err = -1
-    dump_svr_params("test.csv", (gamma, C, eps, maxIter, err))
-
-    return err
 
 if __name__ == '__main__':
     args = get_cmdline_args("Model Selection")
@@ -66,7 +47,7 @@ if __name__ == '__main__':
     print(f"{args.kfold}-folding...")
     ind = k_fold_split_indices(X, Y, args.kfold)
     
-    print(k_fold_evaluate(X, Y, args.kfold, ind, 1/20, 12, 0.05, 5000))
+    print(k_fold_evaluate(X, Y, args.kfold, ind, [1/20, 12, 0.05, 1e-2, 5000]))
 
     sys.exit()
     regressor = SVR(maxIter=3000, eps=1e-4)

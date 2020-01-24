@@ -60,9 +60,9 @@ if __name__ == '__main__':
         print("scaling data...")
         Y, M, m = scale(Y) 
     #intervals for grid search
-    gamma = [10**i for i in range(-3, 2)]
-    C = [10**i for i in range(-1, 4)]
-    eps = [i for i in np.linspace(0.01, 1, num=5)]
+    gamma = [0.01 , 0.05, 0.1, 0.5, 1., 5.]
+    C = [0.05, 0.1, 1., 10., 20., 30.]
+    eps = [0.001, 0.005, 0.01, 0.1, 0.5, 1]
     tol = [1e-3]
     maxiter = [5000]
     ranges = (gamma, C, eps, tol, maxiter)

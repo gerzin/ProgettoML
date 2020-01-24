@@ -100,7 +100,7 @@ def project(d, u, a, lmb, d_lmb, eps=1e-6):
                 
     return x
 
-#@jit('f8(f8[f8[:]], f8[:], f8, f8[:], f8[:], f8, i4)',nopython=True)
+#@jit('numba.float64(numba.array(float64, 2d, C), numba.array(float64, 1d, C), numba.float64, numba.array(float64, 1d, C), numba.array(float64, 1d, C), numba.float64, numba.int64)',nopython=True)
 def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000): 
     """
 
