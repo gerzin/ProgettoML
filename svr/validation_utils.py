@@ -24,7 +24,23 @@ def compute_error(svr, patterns, targets, M=None, m=None, err='mse'):
     
     return e
 
-
+def compute_mee(svr1, svr2, X, y1, y2):
+    """Compute the Mean Euclidean Error.
+    Params:
+        svr1    -- SVR for the first target column.
+        svr2    -- SVR for the second target column.
+        X       -- input patterns.
+        y1      -- first target column.
+        y2      -- second target column.
+    Retval:
+        The Mean Euclidean Error.
+    """
+    out1 = np.array([ svr1.predict(x) for x in X ])
+    out2 = np.array([ svr2.predict(x) for x in X ])
+    diff1 = np.square(out1-y1)
+    diff2 = np.quare(out2-y2)
+    return np.sqrt(diff1-diff2).mean()
+    
 def scale(y):
     """Scale the value of the array betweet 0 and 1.
 
