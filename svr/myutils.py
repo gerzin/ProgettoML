@@ -18,12 +18,12 @@ def print_invocation(f):
 
 def dump_args(f):
     """Decorator that prints when a function has been invocated and its parameters."""
-	argnames = f.__code__.co_varnames
-	def wrapper(*args, **kwargs):
-		argval = ','.join('%s=%r' % entry for entry in zip(argnames, args) )
-		print(f"{f.__name__}({argval})")
-		return f(*args, **kwargs)
-	return wrapper
+    argnames = f.__code__.co_varnames
+    def wrapper(*args, **kwargs):
+        argval = ','.join('%s=%r' % entry for entry in zip(argnames, args) )
+        print(f"{f.__name__}({argval})")
+        return f(*args, **kwargs)
+    return wrapper
 
 def dump_svr_params(filename, tuples):
     """Write (append) on a file a tuple in csv format.
