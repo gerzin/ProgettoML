@@ -29,5 +29,5 @@ if __name__ == '__main__':
     
     g = 1/(len(X[0])*X.var())
     folds = k_fold_indeces(len(X), 3)
-    e = k_fold_evaluate(X, Y1, 3, folds, [0.1, 1, 0.1, 0.001, 5000])
+    e = k_fold_evaluate(X, Y1, 3, folds, [5, 30, 0.1, 0.001, 5000])
     print(e)

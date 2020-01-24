@@ -45,8 +45,8 @@ class SVR:
         Q, q, a = self._prepare(K, y)
 
         x = np.full(len(q), self.C/2)
-        #status, x, e = SLBQP(Q, q, self.C, a, x, self.tol, self.maxIter)
-        status, x, e = 'a', SLBQP(Q, q, self.C, a, x, self.tol, self.maxIter), 0
+        status, x, e = SLBQP(Q, q, self.C, a, x, self.tol, self.maxIter)
+        #status, x, e = 'a', SLBQP(Q, q, self.C, a, x, self.tol, self.maxIter), 0
         if status == 'terminated':
             print("maxIter reached")
 
