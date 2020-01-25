@@ -9,11 +9,13 @@ import itertools as it
 from model_selection import *
 import math
 
-def random_sampling(arr, n):
-    pass
-
 class GridSearcher:
     def __init__(self, reg, ranges=None):
+        '''
+        Params:
+            reg : regressor class
+            ranges : tuple containing the ranges of the parameters to "gridsearch"
+        '''
         param_names = [p for p in signature(reg.__init__).parameters]
         param_names = param_names[2:]
         self.grid = None
@@ -32,6 +34,13 @@ class GridSearcher:
         self.grid = [i for i in self.grid]
 
     def start_search(self, X, Y, k):
+        """Start the gridsearch.
+        
+        Params:
+            X   -- inputs
+            Y   -- outputs
+            k   -- number of folds for the k-fold
+        """
         print("starting grid search...")
         ind = k_fold_split_indices(X,Y,k)
         #treshold

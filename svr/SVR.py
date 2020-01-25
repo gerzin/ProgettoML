@@ -18,11 +18,11 @@ def compute_rbf_matrix(dataset, gamma=1):
             K[j][i] = v
     return K
 
-@jit(nopython=True)	
-def rbf(x,y, gamma=1):	
+@jit(nopython=True) 
+def rbf(x,y, gamma=1):  
     diff = x-y
-    a = np.dot(diff, diff)	
-    return np.exp(-gamma*a)	
+    a = np.dot(diff, diff)  
+    return np.exp(-gamma*a) 
 
 
 class SVR:
