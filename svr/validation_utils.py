@@ -89,6 +89,6 @@ def k_fold_evaluate(X, y, k, folds, params, threshold=np.Inf, scaleY=False):
     else:
         err = err/k
 
-    dump_svr_params("test.csv", (params[0], params[1], params[2], params[4], err))
+    dump_svr_params("results_1.csv", (params[0], params[1], params[2], params[4], err))
     return err
         
