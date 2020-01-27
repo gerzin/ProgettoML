@@ -71,9 +71,9 @@ if __name__ == '__main__':
         print("scaling data...")
         Y, M, m = scale(Y) 
     #intervals for grid search
-    gamma = [0.01 , 0.05, 0.1, 0.5, 1., 5.]
-    C = [0.05, 0.1, 1., 10., 20., 30.]
-    eps = [0.001, 0.005, 0.01, 0.1, 0.5, 1]
+    gamma = [0.09]
+    C = [20.]
+    eps = [0.01]
     tol = [1e-3]
     maxiter = [5000]
     ranges = (gamma, C, eps, tol, maxiter)
