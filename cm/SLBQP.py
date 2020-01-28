@@ -127,21 +127,22 @@ def project(d, u, a, lmb, d_lmb, eps):
     return x
 
 #@jit('numba.float64(numba.array(float64, 2d, C), numba.array(float64, 1d, C), numba.float64, numba.array(float64, 1d, C), numba.array(float64, 1d, C), numba.float64, numba.int64)',nopython=True)
-def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False): 
+def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False, stopAtIter=False): 
     """Solve the quadratic programming problem
             min { (1/2)x'Qx + qx : 0 <= x <= u, a'x = 0}
         using the projected gradient method
     
     Params:
-        Q,q     -- factors of the function f(x) = (1/2)x'Qx + qx
-        u       -- upper bound for the box constraint 0 <= x <= u
-        a       -- weight vector for the linear constraint a'x = 0
-        eps     -- precision for the stopping condition (norm of the direction)
-        maxIter -- maximum number of iteration
-        lmb0    -- initial lambda value for the projection algorithm
-        d_lmb   -- initial delta_lambda value for the projection algorithm
-        prj_eps -- precision for the stopping condition of the projection algorithm
-        verbose -- print algorithm informations at each iteration
+        Q,q         -- factors of the function f(x) = (1/2)x'Qx + qx
+        u           -- upper bound for the box constraint 0 <= x <= u
+        a           -- weight vector for the linear constraint a'x = 0
+        eps         -- precision for the stopping condition (norm of the direction)
+        maxIter     -- maximum number of iteration
+        lmb0        -- initial lambda value for the projection algorithm
+        d_lmb       -- initial delta_lambda value for the projection algorithm
+        prj_eps     -- precision for the stopping condition of the projection algorithm
+        verbose     -- print algorithm informations at each iteration
+        stopAtIter  -- stop at each iteration, press a key to execute the next one
     """
 
     assert len(q)%2 == 0
@@ -194,7 +195,8 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, 
 
         if verbose:
             print("%4d\t%1.8e\t%1.8e\t%1.8e\t%1.8e" % (i, v, g_norm, d_norm, alpha))
-            input("")
+            if stopAtIter:
+                input(">")
 
         # Compute next iterate
         x = x + alpha * d
