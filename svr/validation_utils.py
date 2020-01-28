@@ -143,4 +143,20 @@ def k_fold_evaluate(X, y, k, folds, params, threshold=np.Inf, scaleY=False):
 
     dump_svr_params("results_1.csv", (params[0], params[1], params[2], params[4], err))
     return err
-        
+
+def k_fold_evaluate_training_error(X, y, k, folds, params, filename=None):
+    if filename is None:
+        raise "You must pass a filename to k_fold_evaluate_training_error"
+
+    err = 0
+    M = None
+    m = None
+    for i in range(k):
+        tr,tr_y, vs,vs_y = split_dataset(X,y, folds[i],folds[i+1])
+        svr = SVR(gamma=params[0], C=params[1], eps=params[2], tol=params[3], maxIter=params[4])
+        svr.fit(tr, tr_y)
+        err += compute_error(svr, tr, tr_y, M, m)
+    err = err/k
+    dump_svr_params(filename, (params[0], params[1], params[2], err))
+    return err
+
