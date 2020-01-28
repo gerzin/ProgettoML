@@ -32,13 +32,24 @@ if __name__ == '__main__':
     regressor2.fit(X, Y2)
 
     ts, ts_y1, ts_y2 = load_data(args.file2)
-    ouput = []
+    output = []
     for i in ts:
         a = regressor1.predict(i)
         b = regressor2.predict(i)
         output.append((a,b))
     print("computing mee...")
-    mee = mean_euclidean_error(output, ts_y1, ts_y2)
-    print(f"Mead Euclidean Error =\t {mee}")
+    ts_mee = mean_euclidean_error(output, ts_y1, ts_y2)
+    print(f"Mean Euclidean Error on test set =\t {ts_mee}")
+    output = []
+    for i in X:
+        a = regressor1.predict(i)
+        b = rebressor2.predict(i)
+        output.append((a,b))
+    tr_mee = mean_euclidean_error(output, Y1, Y2)
+    print(f"Mean Euclidean Error on training set =\t {tr_mee}")
+
+    
+
+
 
 
