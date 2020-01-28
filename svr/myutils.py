@@ -53,8 +53,9 @@ def get_cmdline_args(descr='Support Vector Regression using Gradient Projection.
     """
     parser = argparse.ArgumentParser(description=descr)
     parser.add_argument('-f','--file', help='input csv file', required=True)
+    parser.add_argument('-f2','--file2', help='second input file', required=False)
     parser.add_argument('-p', '--percentage', help="percentage", type=float)
-    parser.add_argument('-c', '--column', help="target column (1 or 2)", type=int, choices=[1,2], required=True)
+    parser.add_argument('-c', '--column', help="target column (1 or 2)", type=int, choices=[1,2])
     parser.add_argument('-k', '--kfold', help="parameter for k-fold validation", type=int)
     parser.add_argument('-s', '--scale', help="scale the data", action='store_true')
 #    parser.add_argument('-a', '--arguments',  nargs='+', help='gamma C eps tol', required=False)
