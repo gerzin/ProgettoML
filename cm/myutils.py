@@ -93,7 +93,7 @@ def splitHorizontally(matrix, percentage):
     lenM1 = round(matrix.shape[0]*percentage)
     return matrix[0:lenM1], matrix[lenM1:]
 
-@jit(nopython=True)
+#@jit(nopython=True)
 def build_problem(n, u):
     """
 

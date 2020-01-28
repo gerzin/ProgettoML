@@ -148,13 +148,16 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, 
     n = int(len(q)/2)
     i = 1
     if verbose:
-        print("Iter.\t||gradient||\t||direction||\tStepsize")
+        print("Iter.\tFunction val\t||gradient||\t||direction||\tStepsize")
 
 
     while True:
+        #if(np.dot(a,x) >= 1e-15):
+        #    print(np.dot(a,x))
+        
         # Compute function value (v), gradient (g) and descent direction (d)
         Qx = np.dot(Q, x)
-        v = np.dot(Qx,x) + np.dot(q, x)
+        v = (0.5)*np.dot(x,Qx) + np.dot(q, x)
         g = np.array(Qx+q)
         g_norm = np.linalg.norm(g)
         d = np.array(x-g)
@@ -165,6 +168,7 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, 
 
         # Check for termination
         d_norm = np.linalg.norm(d)
+        #print(np.dot(g,d))
         if(d_norm < eps):
             return ('optimal', x, v)
         if(i >= maxIter):
@@ -189,7 +193,7 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, 
             alpha = min(max_alpha, (d_norm**2)/quad)
 
         if verbose:
-            print("%4d\t%1.8e\t%1.8e\t%1.8e" % (i, g_norm, d_norm, alpha))
+            print("%4d\t%1.8e\t%1.8e\t%1.8e\t%1.8e" % (i, v, g_norm, d_norm, alpha))
             input("")
 
         # Compute next iterate
