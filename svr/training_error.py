@@ -17,9 +17,9 @@ if __name__ == '__main__':
     X, Y1, Y2 = load_data(args.file, delfirst=True, shuffle=False, split=True)
     
     k = 3
-    gamma = [0.05, 0.1, 0.5]
-    C = [10, 20, 30]
-    eps = [0.005, 0.01, 0.1]
+    gamma = [0.08, 0.09, 0.1]
+    C = [17, 20, 22]
+    eps = [0.0075, 0.01, 0.0125]
     tol = [1e-3]
     maxiter = [5000]
     
@@ -27,9 +27,9 @@ if __name__ == '__main__':
     ind = k_fold_split_indices(X,Y1,k)
     for i in combinations:
         gamma, C, eps, tol, maxiter = i
-        err = k_fold_evaluate_training_error(X, Y1, k, ind, [gamma, C, eps, tol, maxiter], filename="trainingError1.csv")
+        err = k_fold_evaluate_training_error(X, Y1, k, ind, [gamma, C, eps, tol, maxiter], filename="data/trainingError1_2.csv")
         print(f"{gamma}\t{C}\t{eps}\t{tol}\t{maxiter}\t{err}")
-    
+
     
 
 
