@@ -95,7 +95,7 @@ class SVR:
         bias = 0
         for i in range(len(self.gammas)):
             gamma = self.gammas[i]
-            if 0< gamma < self.C:
+            if 0<= gamma < self.C:
                 cont += 1
                 bias += y[i] - self.predict(self.data[i])
         if(cont == 0):
