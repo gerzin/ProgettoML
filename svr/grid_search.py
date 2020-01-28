@@ -71,13 +71,12 @@ if __name__ == '__main__':
         print("scaling data...")
         Y, M, m = scale(Y) 
     #intervals for grid search
-    gamma = [0.01 , 0.05, 0.1, 0.5, 1., 5.]
-    C = [0.05, 0.1, 1., 10., 20., 30.]
-    eps = [0.001, 0.005, 0.01, 0.1, 0.5, 1]
+    gamma = [0.09 , 0.1, 0.105, 0.11, 0.15, 0.17]
+    C = [9, 10, 10.5, 11, 14, 19]
+    eps = np.linspace(0.05, 0.15, 5).tolist()
     tol = [1e-3]
     maxiter = [5000]
     ranges = (gamma, C, eps, tol, maxiter)
     
     gs = GridSearcher(SVR, ranges)
     gs.start_search(X,Y,args.kfold)
-
