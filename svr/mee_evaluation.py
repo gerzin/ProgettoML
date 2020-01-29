@@ -8,7 +8,7 @@ from math import sqrt
 
 def mean_euclidean_error(out, Y1, Y2):
     err = 0
-    for i in len(out):
+    for i in range(len(out)):
         a, b = out[i]
         diff1 = (Y1[i]-a)**2
         diff2 = (Y2[i]-b)**2
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     output = []
     for i in X:
         a = regressor1.predict(i)
-        b = rebressor2.predict(i)
+        b = regressor2.predict(i)
         output.append((a,b))
     tr_mee = mean_euclidean_error(output, Y1, Y2)
     print(f"Mean Euclidean Error on training set =\t {tr_mee}")
