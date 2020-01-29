@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+Compute and print the results for the ML-CUP.
+Train both the SVR on the training set, predict 
+the values on the test set and print the results on a file.
+"""
 import numpy as np
 from myutils import *
 from SVR import SVR
