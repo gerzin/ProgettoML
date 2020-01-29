@@ -41,6 +41,8 @@ class SVR:
         self.bias = 0
     
     def fit(self,X, y):
+        """ Train the model with the input patterns in X and the output targets in y
+        """
         K = compute_rbf_matrix(X, self.gamma)
         Q, q, a = self._prepare(K, y)
 
@@ -55,12 +57,16 @@ class SVR:
         self.bias = self._compute_bias(y)
 
     def predict(self, pattern):
+        """ Return the estimated output value for the given pattern
+        """
         d = self.bias
         for i in range(len(self.data)):
             d+= self.gammas[i]*self.ker(pattern,self.data[i], self.gamma)
         return d
 
     def _prepare(self, K, d):
+        """ Used internally to prepare the quadratic problem data
+        """
         (n,m) = K.shape
         if(n != m):
             print("matrix must be square")
@@ -85,12 +91,17 @@ class SVR:
         return Q,q,a
     
     def _compute_gammas(self,x):
+        """ Compute the value of the Lagrangian multipliers using the solution of
+        the quadratic problem
+        """
         n = int(len(x)/2)
         a = x[:n]
         a1 = x[n:]
         return a-a1
     
     def _compute_bias(self, y):
+        """ Compute the optimal bias
+        """
         cont = 0
         bias = 0
         for i in range(len(self.gammas)):
