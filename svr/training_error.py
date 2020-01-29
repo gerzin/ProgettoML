@@ -1,13 +1,7 @@
 #!/usr/bin/env python3
-import numpy as np
-
 from myutils import *
-from SVR import *
-from model_selection import *
+from validation_utils import *
 import itertools as it
-import sys
-from validation_utils import k_fold_evaluate_training_error
-
 
 
 if __name__ == '__main__':
@@ -24,7 +18,7 @@ if __name__ == '__main__':
     maxiter = [5000]
     
     combinations = [i for i in it.product(*(gamma, C, eps, tol, maxiter))]
-    ind = k_fold_split_indices(X,Y1,k)
+    ind = k_fold_indeces(len(X),k)
     for i in combinations:
         gamma, C, eps, tol, maxiter = i
         err = k_fold_evaluate_training_error(X, Y1, k, ind, [gamma, C, eps, tol, maxiter], filename="data/trainingError1_2.csv")

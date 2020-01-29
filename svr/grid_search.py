@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 import numpy as np
-from numba import njit
 import sys
-from myutils import *
 from inspect import signature
-from SVR import *
+from SVR import SVR
 import itertools as it
-from model_selection import *
+from myutils import *
+from validation_utils import *
 import math
 
 class GridSearcher:
@@ -42,7 +41,7 @@ class GridSearcher:
             k   -- number of folds for the k-fold
         """
         print("starting grid search...")
-        ind = k_fold_split_indices(X,Y,k)
+        ind = k_fold_indeces(len(X),k)
         #treshold
         th = math.inf
         for i in self.grid:

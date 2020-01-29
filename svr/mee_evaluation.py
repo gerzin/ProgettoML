@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-import numpy as np
 from myutils import *
-from SVR import *
-from model_selection import *
-import sys
+from SVR import SVR
 from math import sqrt
 
 def mean_euclidean_error(out, Y1, Y2):
@@ -47,9 +44,3 @@ if __name__ == '__main__':
         output.append((a,b))
     tr_mee = mean_euclidean_error(output, Y1, Y2)
     print(f"Mean Euclidean Error on training set =\t {tr_mee}")
-
-    
-
-
-
-

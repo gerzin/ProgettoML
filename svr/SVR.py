@@ -1,7 +1,7 @@
 from myutils import *
 import numpy as np
 from SLBQP import SLBQP
-from numba import jit, jitclass, int32, float32, float64
+from numba import jit
 import pickle
 
 @jit(nopython=True)
