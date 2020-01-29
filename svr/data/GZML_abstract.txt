@@ -1,0 +1,5 @@
+We used two Support Vector Regressor, one for predicting the first target and one for the second.
+The validation tecnique is the following:
+"Manual Experiments" in order to find good values for the first grid search.
+Two grid search phases using 3-fold cross validation.
+Model assestment with a final internal test set.
