@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 from numba import jit, njit, f8, i4
 
@@ -126,6 +128,18 @@ def project(d, u, a, lmb, d_lmb, eps):
                 
     return x
 
+@njit
+def equal(x, b, tol):
+    return np.abs(x-b) < tol
+@njit
+def active_set(x,u,tol=1e-6):
+    """
+    Retrun arrays containing indices in the active set.
+    """
+    Zero = [ i for (i,e) in enumerate(equal(x,0,tol)) if e ]
+    U = [ j for (j,e) in enumerate(equal(x,u, tol)) if e ]
+    return Zero, U
+
 #@jit('numba.float64(numba.array(float64, 2d, C), numba.array(float64, 1d, C), numba.float64, numba.array(float64, 1d, C), numba.array(float64, 1d, C), numba.float64, numba.int64)',nopython=True)
 def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False, stopAtIter=False): 
     """Solve the quadratic programming problem
@@ -220,3 +234,6 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, 
         x = x + alpha * d
 
         i = i + 1
+
+if __name__ == "__main__":
+    print("testing SLBQP")
