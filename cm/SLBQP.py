@@ -138,7 +138,18 @@ def active_set(x,u,tol=1e-6):
     """
     Zero = [ i for (i,e) in enumerate(equal(x,0,tol)) if e ]
     U = [ j for (j,e) in enumerate(equal(x,u, tol)) if e ]
-    return Zero, U
+    return set(Zero), set(U)
+
+def active_set_changes(Z_old, U_old, Z, U):
+    U_entered = U - U_old
+    U_exited = U_old - U
+    
+    Z_entered = Z - Z_old
+    Z_exited = Z_old - Z
+    
+    return Z_entered.union(U_entered), Z_exited.union(U_exited)
+
+
 
 #@jit('numba.float64(numba.array(float64, 2d, C), numba.array(float64, 1d, C), numba.float64, numba.array(float64, 1d, C), numba.array(float64, 1d, C), numba.float64, numba.int64)',nopython=True)
 def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False, stopAtIter=False): 
@@ -159,7 +170,7 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, 
         stopAtIter  -- stop at each iteration, press a key to execute the next one
     """
 
-    # Input control
+    # Input check
     n = len(x)
 
     (d1,d2) = Q.shape
@@ -172,22 +183,23 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, 
         return
 
     if len(a) != n:
-        print("a has wronf size")
+        print("a has wrong size")
         return
 
     if not isinstance(u, (np.float,np.float64)):
         print("u is not a float scalar")
         return
 
+
+    Z_old = set()
+    U_old = set()
+    v_old = - np.Inf
+
     i = 1
     if verbose:
-        print("Iter.\tFunction val\t||gradient||\t||direction||\tStepsize")
+        print("Iter.\tFunction val\t||gradient||\t||direction||\tf_val - f_old\tStepsize")
 
-
-    while True:
-        #if(np.dot(a,x) >= 1e-15):
-        #    print(np.dot(a,x))
-        
+    while True:        
         # Compute function value (v), gradient (g) and descent direction (d)
         Qx = np.dot(Q, x)
         v = (0.5)*np.dot(x,Qx) + np.dot(q, x)
@@ -201,10 +213,33 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, 
 
         # Check for termination
         d_norm = np.linalg.norm(d)
-        #print(np.dot(g,d))
+        
+        if verbose:
+            if(v_old > - np.Inf):
+                rate = v_old - v
+            else:
+                rate = 1.
+            print("%4d\t%1.8e\t%1.8e\t%1.8e\t%1.8e" % (i, v, g_norm, d_norm, rate), end="")
+            Z,U = active_set(x,u,prj_eps)
+            EN,EX = active_set_changes(Z_old, U_old, Z, U)
+            if len(EN) > 0:
+                print("")
+                print(f"--> {EN}", end="")
+            if len(EX) > 0:
+                print("")
+                print(f"<-- {EX}", end="")
+
+            Z_old = Z
+            U_old = U
+            v_old = v
+        
         if(d_norm < eps):
+            if verbose :
+                print("")
             return ('optimal', x, v)
         if(i >= maxIter):
+            if verbose:
+                print("")
             return ('terminated', x, v)
 
         # Compute the maximum feasible stepsize
@@ -226,7 +261,7 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, 
             alpha = min(max_alpha, (d_norm**2)/quad)
 
         if verbose:
-            print("%4d\t%1.8e\t%1.8e\t%1.8e\t%1.8e" % (i, v, g_norm, d_norm, alpha))
+            print("\t%1.8e" % (alpha))
             if stopAtIter:
                 input(">")
 
