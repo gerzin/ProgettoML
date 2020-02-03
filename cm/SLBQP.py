@@ -145,8 +145,26 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, 
         stopAtIter  -- stop at each iteration, press a key to execute the next one
     """
 
-    assert len(q)%2 == 0
-    n = int(len(q)/2)
+    # Input control
+    n = len(x)
+
+    (d1,d2) = Q.shape
+    if d1 != n or d2 != n:
+        print("Q has wrong size")
+        return
+
+    if len(q) != n:
+        print("q has wrong size")
+        return
+
+    if len(a) != n:
+        print("a has wronf size")
+        return
+
+    if not isinstance(u, (np.float,np.float64)):
+        print("u is not a float scalar")
+        return
+
     i = 1
     if verbose:
         print("Iter.\tFunction val\t||gradient||\t||direction||\tStepsize")
@@ -177,7 +195,7 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, 
 
         # Compute the maximum feasible stepsize
         max_alpha = np.Inf
-        for j in range(n):
+        for j in range(len(d)):
             if(d[j] > 0):
                 max_alpha = min( max_alpha, (u - x[j])/d[j] )
             elif(d[j] < 0):

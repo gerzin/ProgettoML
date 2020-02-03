@@ -26,7 +26,7 @@ if __name__ == '__main__':
     v1 = sol1['primal objective']
     
     x = np.full(len(q), 5)
-    s, sol, v = SLBQP(Q, q, 10, a, x, eps=1e-9, maxIter=10000, verbose=False)
+    s, sol, v = SLBQP(Q, q, 10., a, x, eps=1e-9, maxIter=10000, verbose=False)
     print(f"{v1} \t {v} ({s})")
     print(np.linalg.norm(x1-sol))
         
