@@ -3,10 +3,8 @@ import numpy as np
 import numpy.linalg as la
 import random
 
-def genBCQP( n , actv=0.5 , rank=1.1 , ecc=0.99 , seed=0 , umin=8 , umax=12):
-	Q, q, u = None, None, None
-
-	u = (umin * np.ones(n)) + (umax-umin)*np.random.rand(n)
+def genBCQP( n , actv=0.5 , rank=1.1 , ecc=0.99 , seed=0, u=10):
+	Q, q = None, None
 
 	G = np.random.rand(round(rank * n) , n )
 	Q = np.transpose(G) @ G
@@ -22,16 +20,16 @@ def genBCQP( n , actv=0.5 , rank=1.1 , ecc=0.99 , seed=0 , umin=8 , umax=12):
 
 	for (i,j) in enumerate(l):
 		if j:
-			z[i] = -u[i]*random.random()
+			z[i] = -u*random.random()
 
 	for (i,j) in enumerate(r):
 		if j:
-			z[i] = u[i]*(1 + random.random())
+			z[i] = u*(1 + random.random())
 
 	outb = [not i for i in outb]
 	for (i,j) in enumerate(outb):
 		if j:
-			z[i] = random.random()*u[i]
+			z[i] = random.random()*u
 
 	q = -Q @ z
 
