@@ -205,7 +205,11 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, 
         v = (0.5)*np.dot(x,Qx) + np.dot(q, x)
         g = np.array(Qx+q)
         g_norm = np.linalg.norm(g)
-        d = np.array(x-g)
+        
+        quad = np.dot(g, np.dot(Q, g))
+        alpha = (g_norm**2)/quad
+        
+        d = np.array(x - alpha*g)
 
         # Project the direction over the feasible region
         d = project(d, u, a, lmb0, d_lmb, prj_eps)
@@ -237,38 +241,42 @@ def SLBQP(Q, q, u, a, x, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, 
             if verbose :
                 print("")
             return ('optimal', x, v)
-        if(i >= maxIter):
+        if(maxIter != -1 and i >= maxIter):
             if verbose:
                 print("")
             return ('terminated', x, v)
-
-        # Compute the maximum feasible stepsize
-        max_alpha = np.Inf
-        for j in range(len(d)):
-            if(d[j] > 0):
-                max_alpha = min( max_alpha, (u - x[j])/d[j] )
-            elif(d[j] < 0):
-                max_alpha = min( max_alpha, (-x[j])/d[j] )
-
-        # Exact line search toward the minimum
-        quad = np.dot(d, np.dot(Q, d))
-        if(quad <= 1e-16):
-            # If the quadratic part is zero, take the maximum stepsize
-            alpha = max_alpha
-        else:
-            # Otherwise select the minimum between the optimal unbounded
-            # stepsize and the maximum feasible stepsize
-            alpha = min(max_alpha, (d_norm**2)/quad)
-
-        if verbose:
-            print("\t%1.8e" % (alpha))
-            if stopAtIter:
-                input(">")
-
-        # Compute next iterate
-        x = x + alpha * d
-
+        
+        x = x + d
         i = i + 1
+        print("")
+
+#        # Compute the maximum feasible stepsize
+#        max_alpha = np.Inf
+#        for j in range(len(d)):
+#            if(d[j] > 0):
+#                max_alpha = min( max_alpha, (u - x[j])/d[j] )
+#            elif(d[j] < 0):
+#                max_alpha = min( max_alpha, (-x[j])/d[j] )
+#
+#        # Exact line search toward the minimum
+#        quad = np.dot(d, np.dot(Q, d))
+#        if(quad <= 1e-16):
+#            # If the quadratic part is zero, take the maximum stepsize
+#            alpha = max_alpha
+#        else:
+#            # Otherwise select the minimum between the optimal unbounded
+#            # stepsize and the maximum feasible stepsize
+#            alpha = min(max_alpha, (d_norm**2)/quad)
+#
+#        if verbose:
+#            print("\t%1.8e" % (alpha))
+#            if stopAtIter:
+#                input(">")
+#
+#        # Compute next iterate
+#        x = x + alpha * d
+#
+#        i = i + 1
 
 if __name__ == "__main__":
     print("testing SLBQP")
