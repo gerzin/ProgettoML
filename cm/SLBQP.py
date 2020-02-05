@@ -169,6 +169,10 @@ def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1
         prj_eps     -- precision for the stopping condition of the projection algorithm
         verbose     -- print algorithm informations at each iteration
         stopAtIter  -- stop at each iteration, press a key to execute the next one
+    Return:
+        s           -- "terminated" if the program reached the max iterations, "optimal" if a solution was found.
+        x           -- point whose value minimize the function
+        v           -- value of the function in x
     """
 
     # Input check
