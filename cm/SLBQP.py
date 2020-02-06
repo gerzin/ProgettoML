@@ -141,18 +141,28 @@ def active_set(x,u,tol=1e-6):
     return set(Zero), set(U)
 
 def active_set_changes(Z_old, U_old, Z, U):
-    U_entered = U - U_old
-    U_exited = U_old - U
+    U_in = U - U_old
+    U_out = U_old - U
     
-    Z_entered = Z - Z_old
-    Z_exited = Z_old - Z
+    Z_in = Z - Z_old
+    Z_out = Z_old - Z
     
-    return Z_entered.union(U_entered), Z_exited.union(U_exited)
+    return (len(Z_in) > 0 or len(Z_out) > 0), (len(U_in) > 0 or len(U_out) > 0)
 
+@njit
+def compute_max_stepsize(x, d, u):
+    max_alpha = np.Inf
+    for j in range(len(d)):
+        if(d[j] > 0):
+            max_alpha = min( max_alpha, (u - x[j])/d[j] )
+        elif(d[j] < 0):
+            max_alpha = min( max_alpha, (-x[j])/d[j] )
+    
+    return max_alpha
 
 
 #@jit('numba.float64(numba.array(float64, 2d, C), numba.array(float64, 1d, C), numba.float64, numba.array(float64, 1d, C), numba.array(float64, 1d, C), numba.float64, numba.int64)',nopython=True)
-def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False, stopAtIter=False): 
+def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, alpha=-1, verbose=False, stopAtIter=False): 
     """Solve the quadratic programming problem
             min { (1/2)x'Qx + qx : 0 <= x <= u, a'x = 0}
         using the projected gradient method
@@ -175,7 +185,7 @@ def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1
         v           -- value of the function in x
     """
 
-    # Input check
+    # Input check - - - - - - - - - - -
     if x is None:
         x = np.zeros(len(q))
     elif not all([0 <= i <= u for i in x]):
@@ -196,57 +206,48 @@ def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1
 
     if not isinstance(u, np.float64):
         u = np.float64(u)
-
-    # end of input check
+    # end of input check - - - - - - - - -
     
 
     Z_old = set()
     U_old = set()
-    v_old = -np.Inf
 
     i = 1
     if verbose:
-        print("Iter.\tFunction val\t||gradient||\t||direction||\tf_val - f_old\tStepsize")
+        #print("Iter.\tFunction val\t||gradient||\t||direction||\tf_old - f_val\tStepsize")
+        print("Iter.\tFunction val\t||gradient||\t||direction||\t  |Z|\t  |U|\tStepsize")
 
     while True:        
         # Compute function value (v), gradient (g) and descent direction (d)
-        Qx = np.dot(Q, x)
-        v = (0.5)*np.dot(x,Qx) + np.dot(q, x)
-        g = np.array(Qx+q)
-        g_norm = np.linalg.norm(g)
+        Qx = Q @ x
+        v = (0.5)*(x @ Qx) + (q @ x)
+        g = Qx + q
+        d = x - g
         
-        quad = np.dot(g, np.dot(Q, g))
-        alpha = (g_norm**2)/quad
-        
-        d = np.array(x - alpha*g)
-
         # Project the direction over the feasible region
         d = project(d, u, a, lmb0, d_lmb, prj_eps)
         d = d - x
 
-        # Check for termination
+        g_norm = np.linalg.norm(g)
         d_norm = np.linalg.norm(d)
         
         if verbose:
-            if(v_old > - np.Inf):
-                rate = v_old - v
-            else:
-                rate = 1.
-            print("%4d\t%1.8e\t%1.8e\t%1.8e\t%1.8e" % (i, v, g_norm, d_norm, rate), end="")
-            Z,U = active_set(x,u,prj_eps)
-            EN,EX = active_set_changes(Z_old, U_old, Z, U)
+            print("%5d\t%1.8e\t%1.8e\t%1.8e" % (i, v, g_norm, d_norm), end="")
             
-            if len(EN) > 0:
-                print("")
-                print(f"--> {EN}", end="")
-            if len(EX) > 0:
-                print("")
-                print(f"<-- {EX}", end="")
+            Z, U = active_set(x,u,prj_eps)
+            Z_changed, U_changed = active_set_changes(Z_old, U_old, Z, U)
 
-            Z_old = Z
-            U_old = U
-            v_old = v
+            if Z_changed:
+                print("\t%5d*" % (len(Z)), end="")
+            else:
+                print("\t%5d" % (len(Z)), end="")
+
+            if U_changed:            
+                print("\t%5d*" % (len(U)), end="")
+            else:
+                print("\t%5d" % (len(U)), end="")
         
+        # Check for termination
         if(d_norm < eps):
             if verbose :
                 print("")
@@ -255,51 +256,46 @@ def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1
             if verbose:
                 print("")
             return ('terminated', x, v)
-        
-        x = x + d
-        i = i + 1
-        print("")
 
-#        # Compute the maximum feasible stepsize
-#        max_alpha = np.Inf
-#        for j in range(len(d)):
-#            if(d[j] > 0):
-#                max_alpha = min( max_alpha, (u - x[j])/d[j] )
-#            elif(d[j] < 0):
-#                max_alpha = min( max_alpha, (-x[j])/d[j] )
-#
-#        # Exact line search toward the minimum
-#        quad = np.dot(d, np.dot(Q, d))
-#        if(quad <= 1e-16):
-#            # If the quadratic part is zero, take the maximum stepsize
-#            alpha = max_alpha
-#        else:
-#            # Otherwise select the minimum between the optimal unbounded
-#            # stepsize and the maximum feasible stepsize
-#            alpha = min(max_alpha, (d_norm**2)/quad)
-#
-#        if verbose:
-#            print("\t%1.8e" % (alpha))
-#            if stopAtIter:
-#                input(">")
-#
-#        # Compute next iterate
-#        x = x + alpha * d
-#
-#        i = i + 1
+        # Compute the maximum feasible stepsize
+        max_alpha = np.Inf
+        for j in range(len(d)):
+            if(d[j] > 0):
+                max_alpha = min( max_alpha, (u - x[j])/d[j] )
+            elif(d[j] < 0):
+                max_alpha = min( max_alpha, (-x[j])/d[j] )
+
+        # Exact line search toward the minimum
+        quad = np.dot(d, np.dot(Q, d))
+        if(quad <= 1e-16):
+            # If the quadratic part is zero, take the maximum stepsize
+            alpha = max_alpha
+        else:
+            # Otherwise select the minimum between the optimal unbounded
+            # stepsize and the maximum feasible stepsize
+            alpha = min(max_alpha, (d_norm**2)/quad)
+
+        if verbose:
+            print("\t%1.8e\t%1.8e" % (alpha, max_alpha))
+            if stopAtIter:
+                input(">")
+
+        # Compute next iterate
+        x = x + alpha * d
+        
+        i = i + 1
+        Z_old = Z
+        U_old = U
 
 if __name__ == "__main__":
-    from genBCQP import *
+    from genBCQP import genBCQP
     print("testing SLBQP...")
     
     n = 5
+    u = 5.
     print(f"generating problem of size {n}...")
-    Q, q, u = genBCQP(n)
-    a = np.empty(n)
-    a[:n] = 1.
-    a[n:] = -1.
-    x = np.full(len(q), 5.)
+    Q, q, a = genBCQP(n)
     print("solving the problem...")
-    print(SLBQP(Q,q,5.,a,x))
+    print(SLBQP(Q,q,u,a))
 
     

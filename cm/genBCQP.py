@@ -8,6 +8,12 @@ def genBCQP(n , actv=0.5 , rank=1.1 , ecc=0.99, u=10):
 
     G = np.random.rand(round(rank * n) , n )
     Q = np.transpose(G) @ G
+    
+    d, V = la.eig(Q)
+    d = np.sort(d)
+    
+    l = (d - d[1])*(2*ecc)/(1-ecc)*d[1]/(d[n-1]-d[1]) + d[1]
+    Q = np.dot( np.dot(V, np.diag(l)), la.inv(V) )
 
     z = np.zeros(n)
     outb = [ i <= actv for i in np.random.rand(n)]
