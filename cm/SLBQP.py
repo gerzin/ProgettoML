@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from numba import jit, njit, f8, i4
+from numba import jit, njit
 
 """
 SLBQP: Solves the singly linearly box contrained quadratic problem:
@@ -149,20 +149,9 @@ def active_set_changes(Z_old, U_old, Z, U):
     
     return (len(Z_in) > 0 or len(Z_out) > 0), (len(U_in) > 0 or len(U_out) > 0)
 
-@njit
-def compute_max_stepsize(x, d, u):
-    max_alpha = np.Inf
-    for j in range(len(d)):
-        if(d[j] > 0):
-            max_alpha = min( max_alpha, (u - x[j])/d[j] )
-        elif(d[j] < 0):
-            max_alpha = min( max_alpha, (-x[j])/d[j] )
-    
-    return max_alpha
-
 
 #@jit('numba.float64(numba.array(float64, 2d, C), numba.array(float64, 1d, C), numba.float64, numba.array(float64, 1d, C), numba.array(float64, 1d, C), numba.float64, numba.int64)',nopython=True)
-def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, alpha=-1, verbose=False, stopAtIter=False): 
+def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False, stopAtIter=False): 
     """Solve the quadratic programming problem
             min { (1/2)x'Qx + qx : 0 <= x <= u, a'x = 0}
         using the projected gradient method
@@ -207,14 +196,13 @@ def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1
     if not isinstance(u, np.float64):
         u = np.float64(u)
     # end of input check - - - - - - - - -
-    
 
     Z_old = set()
     U_old = set()
 
     i = 1
+    
     if verbose:
-        #print("Iter.\tFunction val\t||gradient||\t||direction||\tf_old - f_val\tStepsize")
         print("Iter.\tFunction val\t||gradient||\t||direction||\t  |Z|\t  |U|\tStepsize")
 
     while True:        
@@ -223,14 +211,14 @@ def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1
         v = (0.5)*(x @ Qx) + (q @ x)
         g = Qx + q
         d = x - g
-        
+
         # Project the direction over the feasible region
         d = project(d, u, a, lmb0, d_lmb, prj_eps)
         d = d - x
 
         g_norm = np.linalg.norm(g)
         d_norm = np.linalg.norm(d)
-        
+
         if verbose:
             print("%5d\t%1.8e\t%1.8e\t%1.8e" % (i, v, g_norm, d_norm), end="")
             
@@ -276,16 +264,19 @@ def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1
             alpha = min(max_alpha, (d_norm**2)/quad)
 
         if verbose:
-            print("\t%1.8e\t%1.8e" % (alpha, max_alpha))
+            print("\t%1.8e\t%1.8e" % (alpha, max_alpha), end="")
             if stopAtIter:
-                input(">")
+                input("    >")
+            else:
+                print("")
 
         # Compute next iterate
         x = x + alpha * d
         
         i = i + 1
-        Z_old = Z
-        U_old = U
+        if verbose:
+            Z_old = Z
+            U_old = U
 
 if __name__ == "__main__":
     from genBCQP import genBCQP
