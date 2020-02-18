@@ -1,15 +1,15 @@
 import numpy as np
 
-def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, verbose=False, stopAtIter=False): 
+def SLBQP(Q, q, l, u, x=None, eps=1e-6, maxIter=5000, verbose=False): 
 
     n = len(q)
-    active_indeces = np.zeros(n)
-    x = np.zeros(n)    
+    x = np.zeros(n)
+    active_indeces = [False for i in range(n)]
     
     ite = 1
     
     if verbose:
-        print("Iter.\tFunction val\t||gradient||\t||direction||\t  |Z|\t  |U|\tStepsize")
+        print("Iter.\tFunction val\t||gradient||\t||direction||\talpha")
 
     while True:        
         # Compute function value (v), gradient (g) and descent direction (d)
@@ -18,26 +18,26 @@ def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, verbose=False, stopAtIter=
         g = Qx + q
         d = -g
         
-        cont = n
         for i in range(n):
-            if(x[i] == 0 and d[i] < 0) or (x[i] == u and d[i] > 0):
-                cont -= 1
-                active_indeces[i] = 1
-                
-        n2 = int(n/2)
-        temp = np.full((n2, n2), 1/cont)
-        B = np.block([[temp, -temp], [-temp, temp]])
+            #active_indeces[i] = (x[i] == l and d[i] < 0) or (x[i] == u and d[i] > 0)
+            active_indeces[i] = (x[i] == l) or (x[i] == u)
+            if(active_indeces[i]):
+                d[i] = 0
+
+        cont = n - sum(active_indeces)
+        temp = sum(d)/cont
+        
+        #print(active_indeces)
         for i in range(n):
-            if(active_indeces[i] == 1):                    
-                B[0:n, i] = 0
-                B[i, 0:n] = 0
-                B[i][i] = 1
-        
-        print(cont)
-        
-        d = (np.eye(n) - B) @ d  
+            if not active_indeces[i]:
+                #print(f"{x[i]},{d[i]}")
+                d[i] = d[i] - temp
+
         
         d_norm = np.linalg.norm(d)
+        g_norm = np.linalg.norm(g)
+        if verbose:
+            print("%5d\t%1.16e\t%1.16e\t%1.16e" % (ite, v, g_norm, d_norm), end="")
         
         if(d_norm < eps):
             if verbose :
@@ -53,8 +53,14 @@ def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, verbose=False, stopAtIter=
         for j in range(len(d)):
             if(d[j] > 0):
                 max_alpha = min( max_alpha, (u - x[j])/d[j] )
+                if(max_alpha==0):
+                    print(f"\n{j}{x[j]},{d[j]}")
+                    return
             elif(d[j] < 0):
-                max_alpha = min( max_alpha, (-x[j])/d[j] )
+                max_alpha = min( max_alpha, (l - x[j])/d[j] )
+                if(max_alpha==0):
+                    print(f"\n{j},{x[j]},{d[j]}")
+                    return
 
         # Exact line search toward the minimum
         quad = np.dot(d, np.dot(Q, d))
@@ -66,10 +72,8 @@ def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, verbose=False, stopAtIter=
             # stepsize and the maximum feasible stepsize
             alpha = min(max_alpha, (d_norm**2)/quad)
 
+        print("\t%1.16e" % (alpha))
         # Compute next iterate
-        print(alpha)
         x = x + alpha * d
         
         ite = ite + 1
-        
-        #input(">")
