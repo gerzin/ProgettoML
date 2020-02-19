@@ -4,9 +4,15 @@ from numba import jit, njit
 """
 SLBQP: Solves the singly linearly box contrained quadratic problem:
 
-    min { (1/2)x'Qx + qx : ax = 0, 0 <= x <= u }
+    min { (1/2)x'Qx + qx : ax = 0, 0 <= x <= C }
 
+with
+Q = [ K -K
+     -K  K ]
+q = [epsilon - y, epsilon + y] and
+a = [1 ... 1, -1 ... -1]
 using the projected gradient method.
+
 
 The projection is computed with the algorithm described in [?]:
     
@@ -29,9 +35,13 @@ and then we look for the root (SECANT PHASE)
 @jit(nopython=True, parallel=True)
 def compute_x_r(d1, d2, lmb, u, n):
     """Compute the optimal value for x given lambda"""
+    
+    # x = d + lmb * a
+    # with a = [1...1,-1...-1]
     x1 = d1 + lmb
     x2 = d2 - lmb
     
+    # 'Apply' the box constraints
     for i in range(n):
         if(x1[i] > u): x1[i] = u
         elif(x1[i] < 0): x1[i] = 0
@@ -39,7 +49,9 @@ def compute_x_r(d1, d2, lmb, u, n):
     for i in range(n):
         if(x2[i] > u): x2[i] = u
         elif(x2[i] < 0): x2[i] = 0
-        
+       
+    # r = a'x
+    # with a = [1...1,-1...-1]
     r = np.sum(x1) - np.sum(x2)
     
     return x1, x2, r
@@ -47,7 +59,7 @@ def compute_x_r(d1, d2, lmb, u, n):
 @jit(nopython=True)
 def project(d1, d2, u, lmb, d_lmb, eps):
     """ Return the projection of the point d over the feasible region
-    defined by 0 <= x <= u and ax = 0
+    defined by 0 <= x <= u and ax = 0 with a = [1...1,-1...-1]
     """
     n = len(d1)
     # BRACKETING PHASE -----
@@ -58,7 +70,7 @@ def project(d1, d2, u, lmb, d_lmb, eps):
     if(abs(r) < eps): return x1, x2
     
     if(r < 0):
-        # r(λ) is negative -> search for a λ | r(λ) > 0
+        # r(λ) < 0 -> search for a λ | r(λ) > 0
                 
         # initialize lower bounds and update
         lmb_l = lmb; r_l = r;
@@ -79,7 +91,7 @@ def project(d1, d2, u, lmb, d_lmb, eps):
         lmb_u = lmb; r_u = r
 
     else:
-        # start looking for a negative value of r
+        # r(λ) > 0 -> search for a λ' | r(λ') < 0
         
         # initialize upper bounds and update lambda
         lmb_u = lmb; r_u = r; lmb -= d_lmb
@@ -135,6 +147,37 @@ def project(d1, d2, u, lmb, d_lmb, eps):
     return x1, x2
 
 @njit
+def project1(d1, d2, x1, x2, u, n):
+    active_indeces1 = [False for i in range(n)]
+    active_indeces2 = [False for i in range(n)]
+    cont = 2*n
+    d_sum = 0
+    
+    for i in range(n):
+        active_indeces1[i] = (x1[i] == 0) or (x1[i] == u)
+        if(active_indeces1[i]):
+            d1[i] = 0
+            cont -= 1
+        d_sum += d1[i]
+        
+    for i in range(n):
+        active_indeces2[i] = (x2[i] == 0) or (x2[i] == u)
+        if(active_indeces2[i]):
+            d2[i] = 0
+            cont -= 1
+        d_sum -= d2[i]
+    
+    temp = d_sum/cont
+    for i in range(n):
+        if not active_indeces1[i]:
+            d1[i] = d1[i] - temp
+    for i in range(n):
+        if not active_indeces2[i]:
+            d2[i] = d2[i] + temp
+
+    return d1, d2
+
+@njit
 def equal(x, b, tol):
     return np.abs(x-b) < tol
 @njit
@@ -158,7 +201,7 @@ def active_set_changes(Z_old, U_old, Z, U):
 
 
 
-def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False, stopAtIter=False):
+def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False, prj_type=1):
     """
     """
     
@@ -182,8 +225,10 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
     i = 1
     
     # x = [x1, x2]
-    x1 = np.zeros(n)
-    x2 = np.zeros(n)
+    #x1 = np.zeros(n)
+    #x2 = np.zeros(n)
+    x1 = np.full(n, C/2)
+    x2 = np.full(n, C/2)
     
     # q = [q1, q2]
     q1 = epsilon - y
@@ -208,9 +253,12 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
         # - - - - - - - - - - - - - - - - - - - - - - - - -
         
         # Compute descent direction
-        d1, d2 = project(x1 - g1, x2- g2, C, lmb0, d_lmb, prj_eps)
-        d1 = d1 - x1
-        d2 = d2 - x2
+        if prj_type == 1:
+            d1, d2 = project(x1 - g1, x2 - g2, C, lmb0, d_lmb, prj_eps)
+            d1 = d1 - x1
+            d2 = d2 - x2
+        else:
+            d1, d2 = project1(-g1, -g2, x1, x2, C, n)
         
         # Compute the norm of the gradient (g) and of the direction (d)
         g_norm = np.sqrt((g1 @ g1) + (g2 @ g2))
@@ -220,18 +268,18 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
         if verbose:
             print("%5d\t%1.8e\t%1.8e\t%1.8e" % (i, v, g_norm, d_norm), end="")
             
-            Z, U = active_set(x, C, prj_eps)
-            Z_changed, U_changed = active_set_changes(Z_old, U_old, Z, U)
-
-            if Z_changed:
-                print("\t%5d*" % (len(Z)), end="")
-            else:
-                print("\t%5d" % (len(Z)), end="")
-
-            if U_changed:            
-                print("\t%5d*" % (len(U)), end="")
-            else:
-                print("\t%5d" % (len(U)), end="")
+#            Z, U = active_set(x, C, prj_eps)
+#            Z_changed, U_changed = active_set_changes(Z_old, U_old, Z, U)
+#
+#            if Z_changed:
+#                print("\t%5d*" % (len(Z)), end="")
+#            else:
+#                print("\t%5d" % (len(Z)), end="")
+#
+#            if U_changed:            
+#                print("\t%5d*" % (len(U)), end="")
+#            else:
+#                print("\t%5d" % (len(U)), end="")
         # - - - - - - - - - - - - - - - - -
         
         # Check for termination
@@ -280,17 +328,13 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
 
         # Print stats
         if verbose:
-            print("\t%1.8e\t%1.8e" % (alpha, max_alpha), end="")
-            if stopAtIter:
-                input("    >")
-            else:
-                print("")
+            print("\t%1.8e\t%1.8e" % (alpha, max_alpha))
 
         # Compute next iterate
         x1 = x1 + alpha * d1
         x2 = x2 + alpha * d2
         
         i = i + 1
-        if verbose:
-            Z_old = Z
-            U_old = U
+#        if verbose:
+#            Z_old = Z
+#            U_old = U
