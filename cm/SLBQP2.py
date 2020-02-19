@@ -1,12 +1,16 @@
 import numpy as np
+from myutils import print_decreasing 
 
-def SLBQP(Q, q, l, u, x=None, eps=1e-6, maxIter=5000, verbose=False): 
+def SLBQP(Q, q, l, u, eps=1e-6, maxIter=5000, m1=0.0001, astart=1, tau=0.9, verbose=False): 
 
     n = len(q)
     x = np.zeros(n)
-    active_indeces = [False for i in range(n)]
+    active_indeces1 = [False for i in range(n)]
+    active_indeces2 = [False for i in range(n)]
     
     ite = 1
+    
+    OLD = None
     
     if verbose:
         print("Iter.\tFunction val\t||gradient||\t||direction||\talpha")
@@ -14,30 +18,42 @@ def SLBQP(Q, q, l, u, x=None, eps=1e-6, maxIter=5000, verbose=False):
     while True:        
         # Compute function value (v), gradient (g) and descent direction (d)
         Qx = Q @ x
-        v = (0.5)*(x @ Qx) + (q @ x)
+        v = (0.5)*(x @ Qx) + (q @ x) #+ 0.1*np.linalg.norm(x, ord=1)
         g = Qx + q
+        
         d = -g
         
+        cont = 2*n
+        d_sum = 0
         for i in range(n):
-            #active_indeces[i] = (x[i] == l and d[i] < 0) or (x[i] == u and d[i] > 0)
-            active_indeces[i] = (x[i] == l) or (x[i] == u)
-            if(active_indeces[i]):
-                d[i] = 0
-
-        cont = n - sum(active_indeces)
-        temp = sum(d)/cont
+            active_indeces1[i] = (x1[i] == l) or (x1[i] == u)
+            if(active_indeces1[i]):
+                d1[i] = 0
+                cont -= 1
+            d_sum += d1[i]
+            
+        for i in range(n):
+            active_indeces2[i] = (x2[i] == l) or (x2[i] == u)
+            if(active_indeces1[i]):
+                d2[i] = 0
+                cont -= 1
+            d_sum += d2[i]
         
-        #print(active_indeces)
+        temp = d_sum/cont
         for i in range(n):
-            if not active_indeces[i]:
-                #print(f"{x[i]},{d[i]}")
-                d[i] = d[i] - temp
+            if not active_indeces1[i]:
+                d1[i] = d1[i] - temp
+        for i in range(n):
+            if not active_indeces2[i]:
+                d2[i] = d2[i] - temp
 
         
         d_norm = np.linalg.norm(d)
         g_norm = np.linalg.norm(g)
         if verbose:
-            print("%5d\t%1.16e\t%1.16e\t%1.16e" % (ite, v, g_norm, d_norm), end="")
+            #print("%5d\t%1.16e\t%1.16e\t%1.16e" % (ite, v, g_norm, d_norm), end="")
+            OLD = print_decreasing(ite, v, g_norm, d_norm, OLD)
+            print("")
         
         if(d_norm < eps):
             if verbose :
@@ -71,8 +87,25 @@ def SLBQP(Q, q, l, u, x=None, eps=1e-6, maxIter=5000, verbose=False):
             # Otherwise select the minimum between the optimal unbounded
             # stepsize and the maximum feasible stepsize
             alpha = min(max_alpha, (d_norm**2)/quad)
+                    
+#        phip0 = - d_norm*d_norm
+#        alpha = astart
+#        
+#        p = x + alpha*d
+#        va = (0.5)*(p @ (Q @ p)) + (q @ p) + 0.1*np.linalg.norm(p, ord=1)
+#        iterazioni = 1
+#        while(va > v + m1*alpha*phip0):
+#            iterazioni += 1
+#            alpha = tau*alpha
+#            p = x + alpha*d
+#            va = (0.5)*(p @ (Q @ p)) + (q @ p) + 0.1*np.linalg.norm(p, ord=1)
+#        
+#        print
+#        print("\t%5d\t%1.16e" % (iterazioni,alpha), end="")
+#        
+#        alpha = min(max_alpha, alpha)
 
-        print("\t%1.16e" % (alpha))
+        #print("\t%1.16e" % (alpha))
         # Compute next iterate
         x = x + alpha * d
         

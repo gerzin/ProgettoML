@@ -100,10 +100,11 @@ def project(d, u, a, lmb, d_lmb, eps):
     s = 1 - r_l/r_u
     d_lmb = d_lmb/s
     lmb = lmb_u - d_lmb
-    x = compute_x(d, lmb, a, u)
-    r = np.dot(a, x)
+    x = compute_x(d, lmb, a, u); r = np.dot(a, x)
+
     while(abs(r) >= eps):
         if(r > 0):
+            # move upper bound
             if(s <= 2):
                 lmb_u = lmb; r_u = r
                 s = 1 - r_l/r_u; d_lmb = (lmb_u - lmb_l)/s
@@ -114,6 +115,7 @@ def project(d, u, a, lmb, d_lmb, eps):
                 lmb_u = lmb; r_u = r; lmb = lmb_new
                 s = (lmb_u - lmb_l)/(lmb_u - lmb)
         else:
+            # move lower bound
             if(s >= 2):
                 lmb_l = lmb; r_l = r
                 s = 1 - r_l/r_u; d_lmb = (lmb_u - lmb_l)/s
@@ -123,8 +125,8 @@ def project(d, u, a, lmb, d_lmb, eps):
                 lmb_new = min(lmb + d_lmb, 0.75*lmb_u + 0.25*lmb)
                 lmb_l = lmb; r_l = r; lmb = lmb_new
                 s = (lmb_u - lmb_l)/(lmb_u - lmb)
-        x = compute_x(d, lmb, a, u)
-        r = np.dot(a, x)
+
+        x = compute_x(d, lmb, a, u); r = np.dot(a, x)
                 
     return x
 
@@ -212,7 +214,7 @@ def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1
         g = Qx + q
         d = x - g
 
-        # Project the direction over the feasible region
+        # Project the point over the feasible region
         d = project(d, u, a, lmb0, d_lmb, prj_eps)
         d = d - x
 
@@ -256,7 +258,7 @@ def SLBQP(Q, q, u, a, x=None, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1
         # Exact line search toward the minimum
         quad = np.dot(d, np.dot(Q, d))
         if(quad <= 1e-16):
-            # If the quadratic part is zero, take the maximum stepsize
+            # If the quadratic part is zero or negative, take the maximum stepsize
             alpha = max_alpha
         else:
             # Otherwise select the minimum between the optimal unbounded
