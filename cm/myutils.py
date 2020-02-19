@@ -115,7 +115,7 @@ def rbf(x,y, gamma=1):
     a = np.dot(x-y, x-y)
     return np.exp(-gamma*a)
 
-@jit(nopython=True)
+#@jit(nopython=True)
 def compute_kernel_matrix(dataset, dot_product=linear):
     n = len(dataset)
     K = np.empty([n,n])
@@ -124,8 +124,8 @@ def compute_kernel_matrix(dataset, dot_product=linear):
         for j in range(i,n):
             v = dot_product(dataset[i], dataset[j])
             
-            K[i][j] = v
-            K[j][i] = v
+            K[i,j] = v
+            K[j,i] = v
 
     return K
 
