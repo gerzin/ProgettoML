@@ -209,7 +209,8 @@ def dump_on_file(filename):
         def wrapper(*args, **kw):
             result = function(*args, **kw)
             with open(filename, "a") as f:
-                f.write(str(result))
+                writer = csv.writer(f)
+                writer.writerow(result)
             return result
         return wrapper
     return decorator
