@@ -153,10 +153,10 @@ def project1(d1, d2, x1, x2, u, n):
     
     temp1 = None
     temp2 = None
-    d_sum = 0
     
     test = 0
     while(test != -1):
+        d_sum = 0
         temp1 = np.array(d1)
         for i in range(n):
             if(active_indeces1[i]):
@@ -176,7 +176,7 @@ def project1(d1, d2, x1, x2, u, n):
             return np.zeros(n), np.zeros(n)
         else:
             v = d_sum/den
-        print(f"{den} ", end='')
+        #print(f"{den} ", end='')
             
         #v = d_sum/(2*n - sum(active_indeces1) - sum(active_indeces2))
         for i in range(n):
@@ -286,8 +286,8 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
             d2 = d2 - x2
         else:
             d1, d2 = project1(-g1, -g2, x1, x2, C, n)
-            dg = d1 @ g1 + d2 @ g2
-            print(f" ({dg}) ", end='')
+            #dg = d1 @ g1 + d2 @ g2
+            #print(f" ({dg}) ", end='')
         
         # Compute the norm of the gradient (g) and of the direction (d)
         g_norm = np.sqrt((g1 @ g1) + (g2 @ g2))

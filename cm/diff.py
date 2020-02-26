@@ -11,14 +11,14 @@ from time import time
 from random import randint
 
 if __name__ == '__main__':    
-    n = 10
+    n = 300
     u = 1.
     l = -1.
     epsilon = 0.1
     
-#    a = randint(1, 10000000)
-#    print(a)
-    Q, q, a = genBCQP(n, rank=1.1, ecc=0.99, u=u, seed=5948439)
+    a = randint(1, 10000000)
+    print(a)
+    Q, q, a = genBCQP(n, actv=0.1, ecc=0.5, u=u, seed=a)
     
     A = np.block([[Q, -Q], [-Q, Q]])
     b = np.block([epsilon - q, epsilon + q])
