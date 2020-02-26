@@ -8,14 +8,17 @@ from cvxopt import solvers
 from SLBQP2 import SLBQP as TEST
 from SLBQP3 import SLBQP as TEST3
 from time import time
+from random import randint
 
 if __name__ == '__main__':    
-    n = 3000
+    n = 10
     u = 1.
     l = -1.
     epsilon = 0.1
     
-    Q, q, a = genBCQP(n, rank=1.1, ecc=0.99, u=u, seed=None)
+#    a = randint(1, 10000000)
+#    print(a)
+    Q, q, a = genBCQP(n, rank=1.1, ecc=0.99, u=u, seed=5948439)
     
     A = np.block([[Q, -Q], [-Q, Q]])
     b = np.block([epsilon - q, epsilon + q])
@@ -27,9 +30,9 @@ if __name__ == '__main__':
     end1 = time()
     
     # Versione ML con prodotti matrice-vettore "furbi"
-    start2 = time()
-    s2, x2, v2 = TEST3(Q, q, u, epsilon, eps=1e-6, maxIter=-1, lmb0=0, d_lmb=2, prj_eps=1e-9, verbose=False, prj_type=1)
-    end2 = time()
+#    start2 = time()
+#    s2, x2, v2 = TEST3(Q, q, u, epsilon, eps=1e-6, maxIter=-1, lmb0=0, d_lmb=2, prj_eps=1e-9, verbose=True, prj_type=1)
+#    end2 = time()
     
     # Versione prof
     start3 = time()
@@ -38,9 +41,9 @@ if __name__ == '__main__':
     
     print("ML info:")
     print(f"x: {x1} ({s1})\tv: {v1}\ttime: {end1-start1}")
-    
-    print("ML furba info:")
-    print(f"x: {x2} ({s2})\tv: {v2}\ttime: {end2-start2}")
+#    
+#    print("ML furba info:")
+#    print(f"x: {x2} ({s2})\tv: {v2}\ttime: {end2-start2}")
     
     print("Prof info:")
     print(f"x: {x3} ({s3})\tv: {v3}\ttime: {end3-start3}")
