@@ -201,3 +201,16 @@ def print_decreasing(ite, v, g_norm, d_norm, old=None):
         formatter = "%5d\t{0}%1.16e\t{1}%1.16e\t{2}%1.16e\033[0;0m".format(values[1], values[2], values[3])
     print(formatter % (ite, v, g_norm, d_norm), end="")
     return  (ite, v, g_norm, d_norm)
+
+
+def dump_on_file(filename):
+    """Decorator that appends the result of f on a file."""
+    def decorator(function):
+        def wrapper(*args, **kw):
+            result = function(*args, **kw)
+            with open(filename, "a") as f:
+                writer = csv.writer(f)
+                writer.writerow(result)
+            return result
+        return wrapper
+    return decorator
