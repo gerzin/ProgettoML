@@ -146,36 +146,63 @@ def project(d1, d2, u, lmb, d_lmb, eps):
                 
     return x1, x2
 
-@njit
+#@njit
 def project1(d1, d2, x1, x2, u, n):
-    active_indeces1 = [False for i in range(n)]
-    active_indeces2 = [False for i in range(n)]
-    cont = 2*n
+    active_indeces1 = [(x1[i] == 0 and d1[i] < 0) or (x1[i] == u and d1[i] > 0) for i in range(n)]
+    active_indeces2 = [(x2[i] == 0 and d2[i] < 0) or (x2[i] == u and d2[i] > 0) for i in range(n)]
+    
+    temp1 = None
+    temp2 = None
     d_sum = 0
     
-    for i in range(n):
-        active_indeces1[i] = (x1[i] == 0) or (x1[i] == u)
-        if(active_indeces1[i]):
-            d1[i] = 0
-            cont -= 1
-        d_sum += d1[i]
-        
-    for i in range(n):
-        active_indeces2[i] = (x2[i] == 0) or (x2[i] == u)
-        if(active_indeces2[i]):
-            d2[i] = 0
-            cont -= 1
-        d_sum -= d2[i]
-    
-    temp = d_sum/cont
-    for i in range(n):
-        if not active_indeces1[i]:
-            d1[i] = d1[i] - temp
-    for i in range(n):
-        if not active_indeces2[i]:
-            d2[i] = d2[i] + temp
+    test = 0
+    while(test != -1):
+        temp1 = np.array(d1)
+        for i in range(n):
+            if(active_indeces1[i]):
+                temp1[i] = 0
+            else:
+                d_sum += d1[i]
 
-    return d1, d2
+        temp2 = np.array(d2)
+        for i in range(n):
+            if(active_indeces2[i]):
+                temp2[i] = 0
+            else:
+                d_sum -= d2[i]
+
+        den = (2*n - sum(active_indeces1) - sum(active_indeces2))
+        if(den == 0):
+            return np.zeros(n), np.zeros(n)
+        else:
+            v = d_sum/den
+        print(f"{den} ", end='')
+            
+        #v = d_sum/(2*n - sum(active_indeces1) - sum(active_indeces2))
+        for i in range(n):
+            if not active_indeces1[i]:
+                temp1[i] = d1[i] - v
+        for i in range(n):
+            if not active_indeces2[i]:
+                temp2[i] = d2[i] + v
+    
+        test = -1
+        for i in range(n):
+            if (x1[i] == 0 and temp1[i] < 0) or (x1[i] == u and temp1[i] > 0):
+                active_indeces1[i] = True
+                test = i
+                break
+    
+        if (test != -1):
+            continue
+
+        for i in range(n):
+            if (x2[i] == 0 and temp2[i] < 0) or (x2[i] == u and temp2[i] > 0):
+                active_indeces2[i] = True
+                test = i
+                break
+    
+    return temp1,temp2
 
 @njit
 def equal(x, b, tol):
@@ -259,6 +286,8 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
             d2 = d2 - x2
         else:
             d1, d2 = project1(-g1, -g2, x1, x2, C, n)
+            dg = d1 @ g1 + d2 @ g2
+            print(f" ({dg}) ", end='')
         
         # Compute the norm of the gradient (g) and of the direction (d)
         g_norm = np.sqrt((g1 @ g1) + (g2 @ g2))
@@ -307,7 +336,7 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
             elif(d2[j] < 0):
                 max_alpha = min( max_alpha, (-x2[j])/d2[j] )
         # - - - - - - - - - - - - - - - - - - - - - - - - -
-
+            
 
         # Exact line search toward the minimum - - - - -
         # Compute the quadratic part d'Qd
