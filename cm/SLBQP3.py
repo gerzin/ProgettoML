@@ -34,7 +34,18 @@ and then we look for the root (SECANT PHASE)
 
 @jit(nopython=True, parallel=True)
 def compute_x_r(d1, d2, lmb, u, n):
-    """Compute the optimal value for x given lambda"""
+    """Compute the optimal value for x given lambda.
+    Params:
+        d1  -- first block of the direction vector
+        d2  -- second block of the direction vector
+        lmb --
+        u   -- upper bound of the feasible region
+        n   -- dimension of the problem <- TODO: n inutile. rimuovere
+    Returns:
+        x1  --
+        x2  --
+        r   --
+    """
     
     # x = d + lmb * a
     # with a = [1...1,-1...-1]
@@ -60,6 +71,15 @@ def compute_x_r(d1, d2, lmb, u, n):
 def project(d1, d2, u, lmb, d_lmb, eps):
     """ Return the projection of the point d over the feasible region
     defined by 0 <= x <= u and ax = 0 with a = [1...1,-1...-1]
+    Params:
+        d1      -- first block of the direction vector
+        d2      -- second block of the direction vector
+        u       -- upper bound of the feasible region
+        lmb     -- 
+        d_lmb   -- delta lambda
+        eps     -- precision
+    Returns:
+
     """
     n = len(d1)
     # BRACKETING PHASE -----
@@ -67,47 +87,59 @@ def project(d1, d2, u, lmb, d_lmb, eps):
     
     # Compute x and r and check whether it found the minimum
     x1, x2, r = compute_x_r(d1, d2, lmb, u, n)
-    if(abs(r) < eps): return x1, x2
+    if abs(r) < eps:
+        return x1, x2
     
-    if(r < 0):
+    if r < 0:
         # r(λ) < 0 -> search for a λ | r(λ) > 0
                 
         # initialize lower bounds and update
-        lmb_l = lmb; r_l = r;
+        lmb_l = lmb
+        r_l = r
         lmb += d_lmb
         x1, x2, r = compute_x_r(d1, d2, lmb, u, n)
-        if(abs(r) < eps): return x1, x2
+        if abs(r) < eps:
+            return x1, x2
         
-        while(r < 0):
+        while r < 0:
             # update lower bounds and lambda
-            lmb_l = lmb; r_l = r;
+            lmb_l = lmb
+            r_l = r
             s = max(r_l/r -1, 0.1); d_lmb += d_lmb/s; lmb += d_lmb
             
             # Compute x and r and check whether it found the minimum
             x1, x2, r = compute_x_r(d1, d2, lmb, u, n)
-            if(abs(r) < eps): return x1, x2
+            if abs(r) < eps:
+                return x1, x2
         
         # initialize upper bounds
-        lmb_u = lmb; r_u = r
+        lmb_u = lmb
+        r_u = r
 
     else:
         # r(λ) > 0 -> search for a λ' | r(λ') < 0
         
         # initialize upper bounds and update lambda
-        lmb_u = lmb; r_u = r; lmb -= d_lmb
+        lmb_u = lmb
+        r_u = r
+        lmb -= d_lmb
         
         # Compute x and r and check whether it found the minimum
         x1, x2, r = compute_x_r(d1, d2, lmb, u, n)
-        if(abs(r) < eps): return x1, x2
+        if abs(r) < eps:
+            return x1, x2
         
-        while(r > 0):
+        while r > 0:
             # update upper bounds and lambda
             lmb_u = lmb; r_u = r
-            s = max(r_u/r -1, 0.1); d_lmb += d_lmb/s; lmb -= d_lmb
+            s = max(r_u/r -1, 0.1)
+            d_lmb += d_lmb/s
+            lmb -= d_lmb
             
             # Compute x and r and check whether it found the minimum
             x1, x2, r = compute_x_r(d1, d2, lmb, u, n)
-            if(abs(r) < eps): return x1, x2
+            if abs(r) < eps:
+                return x1, x2
         
         # initialize lower bounds
         lmb_l = lmb; r_l = r
@@ -148,6 +180,18 @@ def project(d1, d2, u, lmb, d_lmb, eps):
 
 #@njit
 def project1(d1, d2, x1, x2, u, n):
+    """ Rosen projection of d over the feasible region 0 <= x <= u
+
+    Params:
+        d1  -- first block of the direction vector
+        d2  -- second block of the direction vector
+        x1  -- first block of the iterate
+        x2  -- second block of the iterate
+        u   -- upper bound of the feasible region
+        n   -- dimension of the problem
+    Returns:
+        cambiare nome a temp
+    """
     active_indeces1 = [(x1[i] == 0 and d1[i] < 0) or (x1[i] == u and d1[i] > 0) for i in range(n)]
     active_indeces2 = [(x2[i] == 0 and d2[i] < 0) or (x2[i] == u and d2[i] > 0) for i in range(n)]
     
@@ -230,6 +274,27 @@ def active_set_changes(Z_old, U_old, Z, U):
 
 def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False, prj_type=1):
     """
+    Solve the quadratic problem using a projected gradient method.
+
+
+    Params:
+        K           -- block of the matrix Q =  [ K -K
+                                                 -K  K ]
+        y           -- coeff. used to build q (q = [epsilon - y, epsilon + y])
+        C           -- upper bound for the feasible points
+        epsilon     -- coeff. used to build q (q = [epsilon - y, epsilon + y])
+        eps         -- precision for the stopping condition. | direction | < eps
+        maxIter     -- max number of iterations
+        lmb0        -- initial lambda value for the projection algorithm
+        d_lmb       -- initial delta_lambda value for the projection algorithm
+        prj_eps     -- precision of the projection
+        verbose     -- print more stats
+        prj_type    -- type of projection. 1 = Goldstein, 2 = Rosen
+    Returns:
+        status      -- status of the execution. "terminated" if the program
+                       has reached MaxIter. "optimal" otherwise.
+        x           -- point that minimize the function
+        v           -- minimum value of the function
     """
     
     n = len(y)
