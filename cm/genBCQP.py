@@ -7,7 +7,7 @@ def genBCQP(n , actv=0.5 , rank=1.1 , ecc=0.99, u=10, seed=None):
     
     np.random.seed(seed)
 
-    G = np.random.rand(round(rank * n) , n )
+    G = np.random.rand(round(rank * n) , n)
     Q = np.transpose(G) @ G
     
     d, V = la.eig(Q)
@@ -54,5 +54,3 @@ if __name__ == "__main__":
     print(Q)
     print(q)
     print(a)
-    
-
