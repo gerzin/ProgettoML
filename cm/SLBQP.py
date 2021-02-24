@@ -179,7 +179,7 @@ def project_Goldstein(d1, d2, u, lmb, d_lmb, eps):
     return x1, x2
 
 #@njit
-def project_Rosen(d1, d2, x1, x2, u, n):
+def project_Rosen(d1, d2, x1, x2, u):
     """ Rosen projection of d over the feasible region 0 <= x <= u
 
     Params:
@@ -194,6 +194,8 @@ def project_Rosen(d1, d2, x1, x2, u, n):
         proj1  -- first block of the projected gradient
         proj2  -- second block of the projected gradient
     """
+
+    n = len(x1)
 
     active_indeces1 = [(x1[i] == 0 and d1[i] < 0) or (x1[i] == u and d1[i] > 0) for i in range(n)]
     active_indeces2 = [(x2[i] == 0 and d2[i] < 0) or (x2[i] == u and d2[i] > 0) for i in range(n)]
@@ -272,9 +274,6 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
     if not isinstance(C, np.float64):
         C = np.float64(C)
 
-    if epsilon < 0:
-        raise ValueError("epsilon must be positive")
-
     if eps < 0:
         print("eps must be positive... replacing it with 1e-6")
         eps = 1e-6
@@ -288,6 +287,8 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
     # q = [q1, q2]
     q1 = epsilon - y
     q2 = epsilon + y
+
+    i = 0
     # End of initialization - - - - - - -
 
     if verbose:
@@ -314,7 +315,7 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
             d1 = d1 - x1
             d2 = d2 - x2
         else:
-            d1, d2 = project_Rosen(-g1, -g2, x1, x2, C, n)
+            d1, d2 = project_Rosen(-g1, -g2, x1, x2, C)
         
         # Compute the norm of the gradient (g) and of the direction (d)
         g_norm = np.sqrt((g1 @ g1) + (g2 @ g2))
