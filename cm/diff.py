@@ -5,8 +5,6 @@ from genBCQP import genBCQP
 import numpy as np
 from cvxopt import matrix
 from cvxopt import solvers
-from SLBQP2 import SLBQP as TEST
-from SLBQP3 import SLBQP as TEST3
 from time import time
 from random import randint
 
@@ -24,34 +22,16 @@ if __name__ == '__main__':
     b = np.block([epsilon - q, epsilon + q])
     a = np.block([np.ones(n), -np.ones(n)])
     
-    # Versione ML
     start1 = time()
-    s1, x1, v1 = SLBQP(A, b, u, a, eps=1e-6, maxIter=-1, lmb0=0, d_lmb=2, prj_eps=1e-9, verbose=False)
+    s1, x1, v1 = SLBQP(Q, q, u, epsilon, eps=1e-6, maxIter=-1, lmb0=0, d_lmb=2, prj_eps=1e-9, verbose=True)
     end1 = time()
-    print("ML info:")
+    print("info:")
     print(f"x: {x1} ({s1})\tv: {v1}\ttime: {end1-start1}")
     
-    # Versione ML con prodotti matrice-vettore "furbi"
-#    start2 = time()
-#    s2, x2, v2 = TEST3(Q, q, u, epsilon, eps=1e-6, maxIter=-1, lmb0=0, d_lmb=2, prj_eps=1e-9, verbose=True, prj_type=1)
-#    end2 = time()
-#    print("ML furba info:")
-#    print(f"x: {x2} ({s2})\tv: {v2}\ttime: {end2-start2}")
+   
     
-    # Versione prof
-    start3 = time()
-    s3, x3, v3 = TEST3(Q, q, u, epsilon, eps=1e-6, maxIter=5000, lmb0=0, d_lmb=2, prj_eps=1e-9, verbose=False, prj_type=2)
-    end3 = time()
-    print("Prof info:")
-    print(f"x: {x3} ({s3})\tv: {v3}\ttime: {end3-start3}")
     
-    # Versione prova
-    start4 = time()
-    s4, x4, v4 = TEST(Q, q, u, epsilon, eps=1e-6, maxIter=5000, lmb0=0, d_lmb=2, prj_eps=1e-9, verbose=False, prj_type=2)
-    end4 = time()
-    print("Prof info:")
-    print(f"x: {x4} ({s4})\tv: {v4}\ttime: {end4-start4}")
-
+   
 
     _G, _A, _h, _b = build_problem(2*n, u)
     Q1 = matrix(A)
