@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+import itertools
 #from numba import jit, njit
 
 """
@@ -188,7 +189,6 @@ def project_Rosen(d1, d2, x1, x2, u):
         x1  -- first block of the iterate
         x2  -- second block of the iterate
         u   -- upper bound of the feasible region
-        n   -- dimension of the problem
 
     Returns:
         proj1  -- first block of the projected gradient
@@ -197,33 +197,127 @@ def project_Rosen(d1, d2, x1, x2, u):
 
     n = len(x1)
 
+    # Active components masks
     active_indeces1 = [(x1[i] == 0 and d1[i] < 0) or (x1[i] == u and d1[i] > 0) for i in range(n)]
     active_indeces2 = [(x2[i] == 0 and d2[i] < 0) or (x2[i] == u and d2[i] > 0) for i in range(n)]
+    active_indeces = np.concatenate((active_indeces1, active_indeces2), axis=None)
 
+    n_active1 = sum(active_indeces1)
+    n_active2 = sum(active_indeces2)
+
+    # Free components masks
     free_indeces1 = [not i for i in active_indeces1]
     free_indeces2 = [not i for i in active_indeces2]
-    
+
+    # Number of free components
+    f = sum(free_indeces1) + sum(free_indeces2)
+
+    # Sum of positive and negative free components of d
+    sum_pos = sum(d1[free_indeces1])
+    sum_neg = sum(d2[free_indeces2])
+
+    # Projection
+    proj1 = np.zeros(n)
+    proj2 = np.zeros(n)
+
+
+    d = np.concatenate((d1, d2), axis=None)
     changed = True
     while(changed):
+        print("start iteration")
 
+        # Free components masks
+        free_indeces1 = [not i for i in active_indeces1]
+        free_indeces2 = [not i for i in active_indeces2]
+        # Number of free components
+        f = sum(free_indeces1) + sum(free_indeces2)
+        # Sum of positive and negative free components of d
+        sum_pos = sum(d1[free_indeces1])
+        sum_neg = sum(d2[free_indeces2])
+        # Projection
         proj1 = np.zeros(n)
         proj2 = np.zeros(n)
 
-        d_sum = sum(d1[free_indeces1]) - sum(d2[free_indeces2])
-        den = (2*n - sum(active_indeces1) - sum(active_indeces2))
+        changed = False
 
-        if(den == 0):
+        # Compute the Lagrange multipliers
+        Ak = np.array([1 if v == u else -1 for v in itertools.chain(x1[active_indeces1], x2[active_indeces2])])
+        bk = np.copy(Ak)
+        bk[n_active1:] = np.negative(bk[n_active1:])
+        mu = Ak*d[active_indeces] - bk/f * sum_pos + bk/f * sum_neg
+
+
+        # Check if the Lagrange multipliers are all positive
+        # In case one is negative, the corresponding constraint is removed from the active set
+        k = 0
+        for i in range(n):
+            if active_indeces1[i]:
+                if mu[k] < 0:
+                    #print("\t\t\tmu[k]<0")
+                    active_indeces1[i] = False
+                    active_indeces[i] = False
+                    n_active1 -= 1
+
+                    #sum_pos += d[i]
+
+                    #free_indeces1[i] = True
+                    #f += 1
+
+                    changed = True
+                    break
+                else:
+                    k += 1
+
+        if changed: continue
+
+        for i in range(n):
+            if active_indeces2[i]:
+                if mu[k] < 0:
+                    #print("\t\t\tmu[k]<0")
+                    active_indeces2[i] = False
+                    active_indeces[n+i] = False
+                    n_active2 -= 1
+
+                    #sum_neg += d[i]
+
+                    #free_indeces2[i] = True
+                    #f += 1
+
+                    changed = True
+                    break
+                else:
+                    k += 1
+
+        if changed: continue
+        # - - - - - - - - - - - - - - - - - - - -
+
+
+        # Compute the projection
+        if(f == 0):
             return proj1, proj2
         else:
-            v = d_sum / den
+            v = (sum_pos - sum_neg) / f
 
         proj1[free_indeces1] = d1[free_indeces1] - v
         proj2[free_indeces2] = d2[free_indeces2] + v
     
-        changed = False
+
+        # Check if the projection does not point outside the feasible region
+        # In case one component does, add it to the active set
         for i in range(n):
             if (x1[i] == 0 and proj1[i] < 0) or (x1[i] == u and proj1[i] > 0):
+                #print("\t\t\tproj[i] wrong")
                 active_indeces1[i] = True
+                active_indeces[i] = True
+                n_active1 += 1
+
+                #sum_pos -= d[i]
+
+                #free_indeces1[i] = False
+                #f -= 1
+
+                #proj1[i] = 0
+
                 changed = True
                 break
     
@@ -231,10 +325,23 @@ def project_Rosen(d1, d2, x1, x2, u):
 
         for i in range(n):
             if (x2[i] == 0 and proj2[i] < 0) or (x2[i] == u and proj2[i] > 0):
+                #print("\t\t\tproj[i] wrong")
                 active_indeces2[i] = True
+                active_indeces[n+i] = True
+                n_active2 += 1
+
+                #sum_neg -= d[i]
+
+                #free_indeces2[i] = False
+                #f -= 1
+
+                #proj2[i] = 0
+                
                 changed = True
                 break
+        # - - - - - - - - - - - - - - - - - - - -
     
+
     return proj1, proj2
 
 
