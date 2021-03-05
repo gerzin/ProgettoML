@@ -158,68 +158,6 @@ def project_Goldstein(d1, d2, u, lmb, d_lmb, eps):
     return x1, x2
 
 
-# def project_Rosen(d1, d2, x1, x2, u):
-#     """ Rosen projection of d over the feasible region 0 <= x <= u
-
-#     Params:
-#         d1  -- first block of the direction vector
-#         d2  -- second block of the direction vector
-#         x1  -- first block of the iterate
-#         x2  -- second block of the iterate
-#         u   -- upper bound of the feasible region
-#         n   -- dimension of the problem
-
-#     Returns:
-#         proj1  -- first block of the projected gradient
-#         proj2  -- second block of the projected gradient
-#     """
-
-#     n = len(x1)
-
-#     active_indeces1 = [(x1[i] == 0 and d1[i] < 0) or (
-#         x1[i] == u and d1[i] > 0) for i in range(n)]
-#     active_indeces2 = [(x2[i] == 0 and d2[i] < 0) or (
-#         x2[i] == u and d2[i] > 0) for i in range(n)]
-
-#     free_indeces1 = [not i for i in active_indeces1]
-#     free_indeces2 = [not i for i in active_indeces2]
-
-#     changed = True
-#     while(changed):
-
-#         proj1 = np.zeros(n)
-#         proj2 = np.zeros(n)
-
-#         d_sum = sum(d1[free_indeces1]) - sum(d2[free_indeces2])
-#         den = (2*n - sum(active_indeces1) - sum(active_indeces2))
-
-#         if(den == 0):
-#             return proj1, proj2
-#         else:
-#             v = d_sum / den
-
-#         proj1[free_indeces1] = d1[free_indeces1] - v
-#         proj2[free_indeces2] = d2[free_indeces2] + v
-
-#         changed = False
-#         for i in range(n):
-#             if (x1[i] == 0 and proj1[i] < 0) or (x1[i] == u and proj1[i] > 0):
-#                 active_indeces1[i] = True
-#                 changed = True
-#                 break
-
-#         if (changed):
-#             continue
-
-#         for i in range(n):
-#             if (x2[i] == 0 and proj2[i] < 0) or (x2[i] == u and proj2[i] > 0):
-#                 active_indeces2[i] = True
-#                 changed = True
-#                 break
-
-#     return proj1, proj2
-
-
 # @njit
 def project_Rosen(d1, d2, x1, x2, u):
     """ Rosen projection of d over the feasible region 0 <= x <= u
