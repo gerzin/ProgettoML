@@ -3,7 +3,7 @@ from datetime import datetime
 import pandas as pd
 
 
-class DataStore:
+class DataStorer:
     def __init__(self, filename=None):
         """
         Store the data in a pandas dataframe.
