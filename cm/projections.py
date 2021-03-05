@@ -1,4 +1,5 @@
 import numpy as np
+import itertools
 
 
 def compute_x_r(d1, d2, lmb, u):
@@ -256,8 +257,8 @@ def project_Rosen(d1, d2, x1, x2, u):
     f = sum(free_indeces1) + sum(free_indeces2)
 
     # Sum of positive and negative free components of d
-    sum_pos = sum(d1[free_indeces1])
-    sum_neg = sum(d2[free_indeces2])
+    sum_pos = np.sum(d1[free_indeces1])
+    sum_neg = np.sum(d2[free_indeces2])
 
     # Projection
     proj1 = np.zeros(n)
@@ -268,17 +269,17 @@ def project_Rosen(d1, d2, x1, x2, u):
     while(changed):
         print("start iteration")
 
-        # Free components masks
-        free_indeces1 = [not i for i in active_indeces1]
-        free_indeces2 = [not i for i in active_indeces2]
-        # Number of free components
-        f = sum(free_indeces1) + sum(free_indeces2)
-        # Sum of positive and negative free components of d
-        sum_pos = sum(d1[free_indeces1])
-        sum_neg = sum(d2[free_indeces2])
-        # Projection
-        proj1 = np.zeros(n)
-        proj2 = np.zeros(n)
+        # # Free components masks
+        # free_indeces1 = [not i for i in active_indeces1]
+        # free_indeces2 = [not i for i in active_indeces2]
+        # # Number of free components
+        # f = sum(free_indeces1) + sum(free_indeces2)
+        # # Sum of positive and negative free components of d
+        #sum_pos = sum(d1[free_indeces1])
+        #sum_neg = sum(d2[free_indeces2])
+        # # Projection
+        # proj1 = np.zeros(n)
+        # proj2 = np.zeros(n)
 
         changed = False
 
@@ -300,10 +301,10 @@ def project_Rosen(d1, d2, x1, x2, u):
                     active_indeces[i] = False
                     n_active1 -= 1
 
-                    #sum_pos += d[i]
+                    sum_pos += d1[i]
 
-                    #free_indeces1[i] = True
-                    #f += 1
+                    free_indeces1[i] = True
+                    f += 1
 
                     changed = True
                     break
@@ -321,10 +322,10 @@ def project_Rosen(d1, d2, x1, x2, u):
                     active_indeces[n+i] = False
                     n_active2 -= 1
 
-                    #sum_neg += d[i]
+                    sum_neg += d2[i]
 
-                    #free_indeces2[i] = True
-                    #f += 1
+                    free_indeces2[i] = True
+                    f += 1
 
                     changed = True
                     break
@@ -353,12 +354,12 @@ def project_Rosen(d1, d2, x1, x2, u):
                 active_indeces[i] = True
                 n_active1 += 1
 
-                #sum_pos -= d[i]
+                sum_pos -= d1[i]
 
-                #free_indeces1[i] = False
-                #f -= 1
+                free_indeces1[i] = False
+                f -= 1
 
-                #proj1[i] = 0
+                proj1[i] = 0
 
                 changed = True
                 break
@@ -373,12 +374,12 @@ def project_Rosen(d1, d2, x1, x2, u):
                 active_indeces[n+i] = True
                 n_active2 += 1
 
-                #sum_neg -= d[i]
+                sum_neg -= d2[i]
 
-                #free_indeces2[i] = False
-                #f -= 1
+                free_indeces2[i] = False
+                f -= 1
 
-                #proj2[i] = 0
+                proj2[i] = 0
 
                 changed = True
                 break
