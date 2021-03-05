@@ -49,7 +49,7 @@ class DataStorer:
 
 if __name__ == '__main__':
     # test
-    a = DataStore()
+    a = DataStorer()
     a.push(name="Jane", surname="Doe", age=40, time=datetime.now())
     a.push(name="John", surname="Doe", age=42, time=datetime.now())
     a.save_to_file()
