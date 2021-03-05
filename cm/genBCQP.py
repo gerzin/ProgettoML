@@ -3,10 +3,26 @@ import numpy as np
 import numpy.linalg as la
 
 def genBCQP(n , actv=0.5 , rank=1.1 , ecc=0.99, u=10, seed=None):
+    """
+    Generates a box constrained quadratic program.  
+    Params:
+        n       --  the size of the problem
+        actv    --  how many box constraints (as a fraction of n) the unconstrained optimum will  
+                    violate and so we expect to be active (but there's no guarantee)
+        ecc     --  eccentricity (λ_min - λ_max)/(λ_min + λ_max)
+        rank    --  if > 1 Q can be expected to be full rank
+        u       --  max val of each u_i
+        seed    --  seed for the random number generator
+    Returns:
+        Q, q, a
+    """
+    n = int(n)
+
     Q, q, a = None, None, None
     
     np.random.seed(seed)
 
+    # Generate Q
     G = np.random.rand(round(rank * n) , n)
     Q = np.transpose(G) @ G
     
@@ -16,6 +32,7 @@ def genBCQP(n , actv=0.5 , rank=1.1 , ecc=0.99, u=10, seed=None):
     l = (d - d[1])*(2*ecc)/(1-ecc)*d[1]/(d[n-1]-d[1]) + d[1]
     Q = np.dot( np.dot(V, np.diag(l)), la.inv(V) )
 
+    # Generate q
     z = np.zeros(n)
     outb = [ i <= actv for i in np.random.rand(n)]
     
