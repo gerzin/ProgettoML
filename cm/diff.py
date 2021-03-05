@@ -9,7 +9,7 @@ from time import time
 from random import randint
 
 if __name__ == '__main__':
-    n = 10
+    n = 50
     u = 1.
     l = -1.
     epsilon = 0.1
