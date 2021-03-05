@@ -269,18 +269,6 @@ def project_Rosen(d1, d2, x1, x2, u):
     while(changed):
         print("start iteration")
 
-        # # Free components masks
-        # free_indeces1 = [not i for i in active_indeces1]
-        # free_indeces2 = [not i for i in active_indeces2]
-        # # Number of free components
-        # f = sum(free_indeces1) + sum(free_indeces2)
-        # # Sum of positive and negative free components of d
-        #sum_pos = sum(d1[free_indeces1])
-        #sum_neg = sum(d2[free_indeces2])
-        # # Projection
-        # proj1 = np.zeros(n)
-        # proj2 = np.zeros(n)
-
         changed = False
 
         # Compute the Lagrange multipliers
