@@ -4,11 +4,13 @@ import itertools
 
 def compute_x_r(d1, d2, lmb, u):
     """Compute the optimal value for x given lambda.
+
     Params:
         d1  -- first block of the direction vector
         d2  -- second block of the direction vector
         lmb -- current value for lambda
         u   -- upper bound of the feasible region
+
     Returns:
         x1  -- first block of the optimal x
         x2  -- second block of the optimal x
@@ -75,7 +77,7 @@ def project_Goldstein(d1, d2, u, lmb, d_lmb, eps):
             d_lmb += d_lmb/s
             lmb += d_lmb
 
-            # Compute x and r and check whether it found the minimum
+            # compute x and r and check whether it found the minimum
             x1, x2, r = compute_x_r(d1, d2, lmb, u)
             if abs(r) < eps:
                 return x1, x2
@@ -105,7 +107,7 @@ def project_Goldstein(d1, d2, u, lmb, d_lmb, eps):
             d_lmb += d_lmb/s
             lmb -= d_lmb
 
-            # Compute x and r and check whether it found the minimum
+            # compute x and r and check whether it found the minimum
             x1, x2, r = compute_x_r(d1, d2, lmb, u)
             if abs(r) < eps:
                 return x1, x2
@@ -177,12 +179,9 @@ def project_Rosen(d1, d2, x1, x2, u):
     n = len(x1)
 
     # Active components masks
-    active_indeces1 = [(x1[i] == 0 and d1[i] < 0) or (
-        x1[i] == u and d1[i] > 0) for i in range(n)]
-    active_indeces2 = [(x2[i] == 0 and d2[i] < 0) or (
-        x2[i] == u and d2[i] > 0) for i in range(n)]
-    active_indeces = np.concatenate(
-        (active_indeces1, active_indeces2), axis=None)
+    active_indeces1 = [(x1[i] == 0 and d1[i] < 0) or (x1[i] == u and d1[i] > 0) for i in range(n)]
+    active_indeces2 = [(x2[i] == 0 and d2[i] < 0) or (x2[i] == u and d2[i] > 0) for i in range(n)]
+    active_indeces = np.concatenate((active_indeces1, active_indeces2), axis=None)
 
     n_active1 = sum(active_indeces1)
     n_active2 = sum(active_indeces2)
@@ -204,10 +203,11 @@ def project_Rosen(d1, d2, x1, x2, u):
 
     d = np.concatenate((d1, d2), axis=None)
     changed = True
+    count = 0
     while(changed):
-        print("start iteration")
 
         changed = False
+        count += 1
 
         # Compute the Lagrange multipliers
         Ak = np.array(
@@ -222,7 +222,6 @@ def project_Rosen(d1, d2, x1, x2, u):
         for i in range(n):
             if active_indeces1[i]:
                 if mu[k] < 0:
-                    # print("\t\t\tmu[k]<0")
                     active_indeces1[i] = False
                     active_indeces[i] = False
                     n_active1 -= 1
@@ -311,7 +310,7 @@ def project_Rosen(d1, d2, x1, x2, u):
                 break
         # - - - - - - - - - - - - - - - - - - - -
 
-    return proj1, proj2
+    return proj1, proj2, count
 
 
 if __name__ == '__main__':

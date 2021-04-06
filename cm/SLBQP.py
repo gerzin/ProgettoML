@@ -92,7 +92,10 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
     # End of initialization - - - - - - -
 
     if verbose:
-        print("Iter.\tFunction val\t||gradient||\t||direction||\tStepsize\tMaxStep")
+        if(prj_type == 1):
+            print("Iter.\tFunction val\t||gradient||\t||direction||\tStepsize\tMaxStep")
+        else:
+            print("Iter.\tFunction val\tDegen.\t||gradient||\t||direction||\tStepsize\tMaxStep")
 
     while True:
         # Compute function value (v) and gradient (g) - - -
@@ -114,8 +117,9 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
                 x1 - g1, x2 - g2, C, lmb0, d_lmb, prj_eps)
             d1 = d1 - x1
             d2 = d2 - x2
+            count = 0
         else:
-            d1, d2 = project_Rosen(-g1, -g2, x1, x2, C)
+            d1, d2, count = project_Rosen(-g1, -g2, x1, x2, C)
 
         # Compute the norm of the gradient (g) and of the direction (d)
         g_norm = np.sqrt((g1 @ g1) + (g2 @ g2))
@@ -123,7 +127,7 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
 
         # Print stats - - - - - - - - - - -
         if verbose:
-            print("%5d\t%1.8e\t%1.8e\t%1.8e" % (i, v, g_norm, d_norm), end="")
+            print("%5d\t%1.8e\t%5d\t%1.8e\t%1.8e" % (i, v, count, g_norm, d_norm), end="")
         # - - - - - - - - - - - - - - - - -
 
         # Check for termination
@@ -138,13 +142,13 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
 
         # Compute the maximum feasible stepsize - - - - -
         max_alpha = np.Inf
-        for j in range(len(d1)):
+        for j in range(n):
             if(d1[j] > 0):
                 max_alpha = min(max_alpha, (C - x1[j])/d1[j])
             elif(d1[j] < 0):
                 max_alpha = min(max_alpha, (-x1[j])/d1[j])
 
-        for j in range(len(d2)):
+        for j in range(n):
             if(d2[j] > 0):
                 max_alpha = min(max_alpha, (C - x2[j])/d2[j])
             elif(d2[j] < 0):
