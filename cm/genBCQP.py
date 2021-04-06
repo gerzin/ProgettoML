@@ -18,7 +18,7 @@ def genBCQP(n , actv=0.5 , rank=1.1 , ecc=0.99, u=10, seed=None):
     """
     n = int(n)
 
-    Q, q, a = None, None, None
+    Q, q = None, None
     
     np.random.seed(seed)
 
@@ -55,19 +55,13 @@ def genBCQP(n , actv=0.5 , rank=1.1 , ecc=0.99, u=10, seed=None):
         if j:
             z[i] = np.random.random_sample()*u
 
+
     q = -Q @ z
 
-    x = np.random.uniform(0,1,n)
-    a = np.empty(n)
-    a[1:n] = np.random.uniform(-1,1,n-1)
-    a[0] = -(x[1:n] @ a[1:n])/x[0]
-    a = a/la.norm(a)
-
-    return Q, q, a
+    return Q, q
 
 if __name__ == "__main__":
     n = 5
     Q,q,a = genBCQP(n)
     print(Q)
     print(q)
-    print(a)
