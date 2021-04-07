@@ -38,7 +38,7 @@ For the projection, two options are available:
 """
 
 
-def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False, prj_type=1):
+def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False, prj_type=1):
     """
     Solve the quadratic problem using a projected gradient method.
 
@@ -50,8 +50,10 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
         epsilon     -- coeff. used to build q (q = [epsilon - y, epsilon + y])
         eps         -- precision for the stopping condition. | direction | < eps
         maxIter     -- max number of iterations (<= 0 for unbounded number of iterations)
-        lmb0        -- initial lambda value for the projection algorithm
-        d_lmb       -- initial delta_lambda value for the projection algorithm
+
+        alpha       -- stepsize along the gradient to project (Goldstain)
+        lmb0        -- initial lambda value for the projection algorithm (Goldstain)
+        d_lmb       -- initial delta_lambda value for the projection algorithm (Goldtsian)
         prj_eps     -- precision of the projection
         verbose     -- print more stats
         prj_type    -- type of projection. 1 = Goldstein, 2 = Rosen
@@ -93,7 +95,7 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
 
     if verbose:
         if(prj_type == 1):
-            print("Iter.\tFunction val\t||gradient||\t||direction||\tStepsize\tMaxStep")
+            print("Iter.\tFunction val\tProj.\t||gradient||\t||direction||\tStepsize\tMaxStep")
         else:
             print("Iter.\tFunction val\tDegen.\t||gradient||\t||direction||\tStepsize\tMaxStep")
 
@@ -113,8 +115,9 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
 
         # Compute descent direction
         if prj_type == 1:
-            d1, d2 = project_Goldstein(
-                x1 - g1, x2 - g2, C, lmb0, d_lmb, prj_eps)
+            d1, d2 = project_Goldstein(x1 - (alpha * g1),
+                                       x2 - (alpha * g2),
+                                       C, lmb0, d_lmb, prj_eps)
             d1 = d1 - x1
             d2 = d2 - x2
             count = 0
@@ -141,18 +144,18 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
             return ('terminated', np.block([x1, x2]), v)
 
         # Compute the maximum feasible stepsize - - - - -
-        max_alpha = np.Inf
+        max_step = np.Inf
         for j in range(n):
             if(d1[j] > 0):
-                max_alpha = min(max_alpha, (C - x1[j])/d1[j])
+                max_step = min(max_step, (C - x1[j])/d1[j])
             elif(d1[j] < 0):
-                max_alpha = min(max_alpha, (-x1[j])/d1[j])
+                max_step = min(max_step, (-x1[j])/d1[j])
 
         for j in range(n):
             if(d2[j] > 0):
-                max_alpha = min(max_alpha, (C - x2[j])/d2[j])
+                max_step = min(max_step, (C - x2[j])/d2[j])
             elif(d2[j] < 0):
-                max_alpha = min(max_alpha, (-x2[j])/d2[j])
+                max_step = min(max_step, (-x2[j])/d2[j])
         # - - - - - - - - - - - - - - - - - - - - - - - - -
 
         # Exact line search toward the minimum - - - - -
@@ -165,19 +168,19 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, lmb0=0, d_lmb=2, prj_eps=1e-
 
         if(quad <= 1e-16):
             # If the quadratic part is zero or negative, take the maximum stepsize
-            alpha = max_alpha
+            step = max_step
         else:
             # Otherwise select the minimum between the optimal unbounded
             # stepsize and the maximum feasible stepsize
-            alpha = min(max_alpha, (d_norm**2)/quad)
+            step = min(max_step, (d_norm**2)/quad)
         # - - - - - - - - - - - - - - - - - - - - - - - -
 
         # Print stats
         if verbose:
-            print("\t%1.8e\t%1.8e" % (alpha, max_alpha))
+            print("\t%1.8e\t%1.8e" % (step, max_step))
 
         # Compute next iterate
-        x1 = x1 + alpha * d1
-        x2 = x2 + alpha * d2
+        x1 = x1 + step * d1
+        x2 = x2 + step * d2
 
         i = i + 1
