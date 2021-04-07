@@ -1,7 +1,19 @@
 import numpy as np
 import itertools
+from numba import njit, prange
 
 
+@njit
+def custom_clip(a, min, max):
+    for i in prange(len(a)):
+        if a[i] < min:
+            a[i] = min
+        elif a[i] > max:
+            a[i] = max
+    return a
+
+
+@njit()
 def compute_x_r(d1, d2, lmb, u):
     """Compute the optimal value for x given lambda.
 
@@ -23,8 +35,11 @@ def compute_x_r(d1, d2, lmb, u):
     x2 = d2 - lmb
 
     # 'Apply' the box constraints
-    x1 = np.clip(x1, 0, u)
-    x2 = np.clip(x2, 0, u)
+    #x1 = np.clip(x1, 0, u)
+    #x2 = np.clip(x2, 0, u)
+
+    x1 = custom_clip(x1, 0, u)
+    x2 = custom_clip(x2, 0, u)
 
     # r = a'x
     # with a = [1...1,-1...-1]
@@ -179,9 +194,12 @@ def project_Rosen(d1, d2, x1, x2, u):
     n = len(x1)
 
     # Active components masks
-    active_indeces1 = [(x1[i] == 0 and d1[i] < 0) or (x1[i] == u and d1[i] > 0) for i in range(n)]
-    active_indeces2 = [(x2[i] == 0 and d2[i] < 0) or (x2[i] == u and d2[i] > 0) for i in range(n)]
-    active_indeces = np.concatenate((active_indeces1, active_indeces2), axis=None)
+    active_indeces1 = [(x1[i] == 0 and d1[i] < 0) or (
+        x1[i] == u and d1[i] > 0) for i in range(n)]
+    active_indeces2 = [(x2[i] == 0 and d2[i] < 0) or (
+        x2[i] == u and d2[i] > 0) for i in range(n)]
+    active_indeces = np.concatenate(
+        (active_indeces1, active_indeces2), axis=None)
 
     n_active1 = sum(active_indeces1)
     n_active2 = sum(active_indeces2)
