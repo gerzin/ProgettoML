@@ -29,18 +29,6 @@ def dump_args(f):
     return wrapper
 
 
-def dump_svr_params(filename, tuples):
-    """Write (append) on a file a tuple in csv format.
-
-    Params:
-        filename    -- name of the file.
-        tuples      -- the tuple to write
-    """
-    with open(filename, "a") as csvfile:
-        csv_out = csv.writer(csvfile)
-        csv_out.writerow(tuples)
-
-
 def time_it(f):
     """Decorator that prints the time in seconds the function took to run."""
     def wrapper(*args, **kw):
@@ -50,26 +38,6 @@ def time_it(f):
         print(f"{f.__name__} took {te-ts}")
         return result
     return wrapper
-
-
-def get_cmdline_args(descr='Support Vector Regression using Gradient Projection.'):
-    """Utility to parse the command line arguments.
-
-    It returns an object containing a mapping <param name, param value>.
-    """
-    parser = argparse.ArgumentParser(description=descr)
-    parser.add_argument('-f', '--file', help='input csv file', required=True)
-    parser.add_argument('-p', '--percentage', help="percentage", type=float)
-    parser.add_argument(
-        '-c', '--column', help="target column (1 or 2)", type=int, choices=[1, 2])
-    parser.add_argument(
-        '-k', '--kfold', help="parameter for k-fold validation", type=int)
-    parser.add_argument(
-        '-s', '--scale', help="scale the data", action='store_true')
-#    parser.add_argument('-a', '--arguments',  nargs='+', help='gamma C eps tol', required=False)
-    return parser.parse_args()
-
-# @jit(nopython=True)
 
 
 def load_data(csvfile, delfirst=True, shuffle=False, split=True):
@@ -93,7 +61,7 @@ def load_data(csvfile, delfirst=True, shuffle=False, split=True):
         return loaded_data
 
 
-@jit(nopython=True)
+#@jit(nopython=True)
 def shuffleRows(M):
     """Shuffles the rows of a matrix"""
     np.random.shuffle(M)
@@ -106,12 +74,22 @@ def splitHorizontally(matrix, percentage):
     lenM1 = round(matrix.shape[0]*percentage)
     return matrix[0:lenM1], matrix[lenM1:]
 
-# @jit(nopython=True)
+
+def sample_problem(dataset, size, seed=None):
+    """
+    """
+    np.random.seed(seed)
+    shuffleRows(dataset)
+
+    data = dataset[0:size, 0:-2]
+    y = dataset[0:size, -2]
+
+    K = compute_kernel_matrix(data, rbf)
+    return K, y
 
 
 def build_problem(n, u):
     """
-
     """
     n2 = int(n/2)
     G = np.block([[np.eye(n)], [-np.eye(n)]])
@@ -130,14 +108,13 @@ def linear(x, y):
 @jit(nopython=True)
 def rbf(x, y, gamma=1):
     a = np.dot(x-y, x-y)
+    print(a)
     return np.exp(-gamma*a)
-
-# @jit(nopython=True)
 
 
 def compute_kernel_matrix(dataset, dot_product=linear):
     n = len(dataset)
-    K = np.empty([n, n])
+    K = np.zeros([n, n])
 
     for i in range(n):
         for j in range(i, n):
@@ -159,45 +136,6 @@ def scale(arr):
 @jit(nopython=True)
 def scale_back(scaled, M, m):
     return scaled*(M-m)+m
-
-
-@jit(nopython=True)
-def prepare(K, eps, d, C):
-    """Prepare thr problem."""
-    (n, m) = K.shape
-    if(n != m):
-        print("matrix must be square")
-        return
-
-    # compute quadratic part of the Quadratic Problem
-    Q = np.block([
-        [K, -K],
-        [-K, K]
-    ])
-
-    # compute linear part of the Quadratic Problem
-    q = np.empty(2*n)
-    q[:n] = eps - d
-    q[n:] = eps + d
-
-    # compute vector for the linear constraint ax = 0
-    a = np.empty(2*n)
-    a[:n] = 1.
-    a[n:] = -1.
-
-    return Q, q, C, a
-
-
-def extract_best_configs(filename, n=1):
-    """Extract the best n configurations from a file.
-    Params:
-        filename    -- name of the csv file.
-        n           -- number of config to extract
-    """
-    f = np.loadtxt(filename, delimiter=',')
-    f = list(filter(lambda x: x[4] >= 0, f))
-    s = sorted(f, key=lambda x: x[4])  # sort error-wise
-    return s[0:n]
 
 
 # colors
