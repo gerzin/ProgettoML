@@ -98,17 +98,23 @@ def randomsample(mat, n):
     r, c = mat.shape
     assert(r >= n)
     M = mat.to_numpy() if type(mat) is pd.core.frame.DataFrame else mat
-    return M[np.random.choice(r, n, replace=False), :]
+    return M[np.random.choice(r, n, repla=False), :]
 
 
-def sample_problem(dataset, size, ncols=2, seed=None):
+def sample_transform_problem(feature, target, size, seed=None):
     """
+    samples a subset of the input matrices/vectors and applies a kernel.
     """
     np.random.seed(seed)
-    mat = randomsample(dataset, size)
-    data, y = separate_feature(mat, ncols)
-    K = compute_kernel_matrix(data, rbf)
-    return K, y
+    r, c = feature.shape
+    assert(r >= size)
+    rand_ind = np.random.choice(r, size, replace=False)
+
+    featuresamp = feature[rand_ind, :]
+    targetsamp = target[rand_ind]
+
+    K = compute_kernel_matrix(featuresamp, rbf)
+    return K, targetsamp
 
 
 def build_problem(n, u):
@@ -131,7 +137,6 @@ def linear(x, y):
 @jit(nopython=True)
 def rbf(x, y, gamma=1):
     a = np.dot(x-y, x-y)
-    print(a)
     return np.exp(-gamma*a)
 
 
@@ -208,7 +213,11 @@ def load_ml_dataset():
     DATASET_NAME = "ML-CUP19-TR.csv"
     print("loading from: ")
     print(DATASET_PATH + "/" + DATASET_NAME)
-    return pd.read_csv(DATASET_PATH + "/" + DATASET_NAME, sep=',', comment='#', skiprows=7, header=None, index_col=0)
+    df = pd.read_csv(DATASET_PATH + "/" + DATASET_NAME, sep=',',
+                     comment='#', skiprows=7, header=None, index_col=0)
+    features, targets = separate_feature(df, 2)
+
+    return features, targets
 
 
 def load_airfoil_dataset():
@@ -219,7 +228,8 @@ def load_airfoil_dataset():
     df = pd.read_csv(DATASET_PATH + "/" + DATASET_NAME)
     df.columns = ['Frequency (HZ)', 'Angle of attack (deg)', 'Chord length (m)', 'Free-stream velocity (m/s)',
                   'Suction side displacement thickness (m)', 'Scaled sound pressure level (db)']
-    return df
+    df, targets = separate_feature(df, 1)
+    return df, targets
 
 
 def load_california_dataset():

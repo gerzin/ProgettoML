@@ -17,15 +17,17 @@ if __name__ == '__main__':
 
     a = randint(1, 10000000)
     print(a)
-    Q, q = genBCQP(n, actv=0.9, ecc=0.5, u=u, seed=a)
+    #Q, q = genBCQP(n, actv=0.9, ecc=0.5, u=u, seed=a)
 
-    a = randomsample(Q, 10)
-    print(len(a))
-    sys.exit()
+    feat, targ = load_ml_dataset()
+    feat = feat.to_numpy()
+    targ = targ.to_numpy()
 
-    A = np.block([[Q, -Q], [-Q, Q]])
-    b = np.block([epsilon - q, epsilon + q])
-    a = np.block([np.ones(n), -np.ones(n)])
+    Q, q = sample_transform_problem(feat, targ[:, 0], 200)
+
+    # A = np.block([[Q, -Q], [-Q, Q]])
+    # b = np.block([epsilon - q, epsilon + q])
+    # a = np.block([np.ones(n), -np.ones(n)])
 
     start1 = time()
     s1, x1, v1 = SLBQP(Q, q, u, epsilon, eps=1e-6, maxIter=-1,
