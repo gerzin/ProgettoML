@@ -289,7 +289,7 @@ def project_Rosen(d1, d2, x1, x2, u):
         # Check if the projection does not point outside the feasible region
         # In case one component does, add it to the active set
         for i in range(n):
-            if (x1[i] == 0 and proj1[i] < 0) or (x1[i] == u and proj1[i] > 0):
+            if (x1[i] < eps and proj1[i] < 0) or (x1[i] > (u - eps) and proj1[i] > 0):
                 #print("\t\t\tproj[i] wrong")
                 active_indeces1[i] = True
                 active_indeces[i] = True
@@ -309,7 +309,7 @@ def project_Rosen(d1, d2, x1, x2, u):
             continue
 
         for i in range(n):
-            if (x2[i] == 0 and proj2[i] < 0) or (x2[i] == u and proj2[i] > 0):
+            if (x2[i] < eps and proj2[i] < 0) or (x2[i] > (u - eps) and proj2[i] > 0):
                 #print("\t\t\tproj[i] wrong")
                 active_indeces2[i] = True
                 active_indeces[n+i] = True
