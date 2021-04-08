@@ -207,11 +207,11 @@ def dump_on_file(filename):
 
 
 def load_ml_dataset():
-    DATASET_PATH = pathlib.Path(pathlib.Path.cwd()) / "data"
+    DATASET_PATH = __file__[:-10] + "data"
     DATASET_NAME = "ML-CUP19-TR.csv"
     print("loading from: ")
-    print(DATASET_PATH / DATASET_NAME)
-    return pd.read_csv(DATASET_PATH / DATASET_NAME, sep=',', comment='#', skiprows=7, header=None, index_col=0)
+    print(DATASET_PATH + "/" + DATASET_NAME)
+    return pd.read_csv(DATASET_PATH + "/" + DATASET_NAME, sep=',', comment='#', skiprows=7, header=None, index_col=0)
 
 
 def load_airfoil_dataset():
