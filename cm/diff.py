@@ -7,6 +7,7 @@ from cvxopt import matrix
 from cvxopt import solvers
 from time import time
 from random import randint
+import sys
 
 if __name__ == '__main__':
     n = 50
@@ -16,7 +17,11 @@ if __name__ == '__main__':
 
     a = randint(1, 10000000)
     print(a)
-    Q, q, a = genBCQP(n, actv=0.9, ecc=0.5, u=u, seed=a)
+    Q, q = genBCQP(n, actv=0.9, ecc=0.5, u=u, seed=a)
+
+    a = randomsample(Q, 10)
+    print(len(a))
+    sys.exit()
 
     A = np.block([[Q, -Q], [-Q, Q]])
     b = np.block([epsilon - q, epsilon + q])
@@ -38,17 +43,17 @@ if __name__ == '__main__':
     print(f"x: {x1} ({s1})\tv: {v1}\ttime: {end1-start1}")
     ######
 
-    _G, _A, _h, _b = build_problem(2*n, u)
-    Q1 = matrix(A)
-    q1 = matrix(b)
-    G1 = matrix(_G)
-    h1 = matrix(_h)
-    A1 = matrix(_A)
-    b1 = matrix(_b)
-    start5 = time()
-    sol = solvers.qp(Q1, q1, G1, h1, A1, b1)
-    end5 = time()
-    x5 = np.array(sol['x']).flatten()
-    v5 = sol['primal objective']
-    print("Solver info:")
-    print(f"x: {x5}\tv: {v5}\ttime: {end5-start5}")
+    # _G, _A, _h, _b = build_problem(2*n, u)
+    # Q1 = matrix(A)
+    # q1 = matrix(b)
+    # G1 = matrix(_G)
+    # h1 = matrix(_h)
+    # A1 = matrix(_A)
+    # b1 = matrix(_b)
+    # start5 = time()
+    # sol = solvers.qp(Q1, q1, G1, h1, A1, b1)
+    # end5 = time()
+    # x5 = np.array(sol['x']).flatten()
+    # v5 = sol['primal objective']
+    # print("Solver info:")
+    # print(f"x: {x5}\tv: {v5}\ttime: {end5-start5}")

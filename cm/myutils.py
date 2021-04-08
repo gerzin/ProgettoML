@@ -1,7 +1,9 @@
+import pathlib
 import argparse
 import numpy as np
 from time import time
-from numba import jit
+from numba import jit, njit, prange
+import pandas as pd
 import csv
 
 
@@ -61,7 +63,7 @@ def load_data(csvfile, delfirst=True, shuffle=False, split=True):
         return loaded_data
 
 
-#@jit(nopython=True)
+# @jit(nopython=True)
 def shuffleRows(M):
     """Shuffles the rows of a matrix"""
     np.random.shuffle(M)
@@ -73,6 +75,30 @@ def splitHorizontally(matrix, percentage):
     assert 0 <= percentage <= 1
     lenM1 = round(matrix.shape[0]*percentage)
     return matrix[0:lenM1], matrix[lenM1:]
+
+
+def separate_feature(df, nlast=1):
+    """separates the features from the target variables.
+    Params:
+        dataset  -- the dataset.
+        nlast    -- number of columns containing the target variables.
+    Returns:
+        features, targets
+    """
+    target_points = df[df.columns[-nlast:]]
+    target_points.columns = ['X', 'Y']
+    feature_points = df[df.columns[:-nlast]]
+    feature_points.columns = [str(i+1)
+                              for i in range(len(feature_points.columns))]
+    return feature_points, target_points
+
+
+def randomsample(mat, n):
+    """samples a random subset of size n from a matrix."""
+    r, c = mat.shape
+    assert(r >= n)
+    M = mat.to_numpy() if type(mat) is pd.core.frame.DataFrame else mat
+    return M[np.random.choice(r, n, replace=False), :]
 
 
 def sample_problem(dataset, size, seed=None):
@@ -178,3 +204,28 @@ def dump_on_file(filename):
             return result
         return wrapper
     return decorator
+
+
+def load_ml_dataset():
+    DATASET_PATH = pathlib.Path(pathlib.Path.cwd()) / "data"
+    DATASET_NAME = "ML-CUP19-TR.csv"
+    print("loading from: ")
+    print(DATASET_PATH / DATASET_NAME)
+    return pd.read_csv(DATASET_PATH / DATASET_NAME, sep=',', comment='#', skiprows=7, header=None, index_col=0)
+
+
+def load_airfoil_dataset():
+    DATASET_PATH = __file__[:-10] + "data"
+    DATASET_NAME = "airfoil_self_noise.csv"
+
+    print(DATASET_PATH + "/" + DATASET_NAME)
+    df = pd.read_csv(DATASET_PATH + "/" + DATASET_NAME)
+    df.columns = ['Frequency (HZ)', 'Angle of attack (deg)', 'Chord length (m)', 'Free-stream velocity (m/s)',
+                  'Suction side displacement thickness (m)', 'Scaled sound pressure level (db)']
+    return df
+
+
+def load_california_dataset():
+    from sklearn.datasets.california_housing import fetch_california_housing
+    data = fetch_california_housing()
+    return pd.DataFrame(data.data, columns=data.feature_names)
