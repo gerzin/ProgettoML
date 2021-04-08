@@ -101,15 +101,12 @@ def randomsample(mat, n):
     return M[np.random.choice(r, n, replace=False), :]
 
 
-def sample_problem(dataset, size, seed=None):
+def sample_problem(dataset, size, ncols=2, seed=None):
     """
     """
     np.random.seed(seed)
-    shuffleRows(dataset)
-
-    data = dataset[0:size, 0:-2]
-    y = dataset[0:size, -2]
-
+    mat = randomsample(dataset, size)
+    data, y = separate_feature(mat, ncols)
     K = compute_kernel_matrix(data, rbf)
     return K, y
 
