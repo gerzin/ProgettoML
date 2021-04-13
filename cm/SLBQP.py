@@ -67,6 +67,8 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
 
     # Problem dimension
     n = len(y)
+    project_Rosen._active_indeces1 = [False for i in range(n)]
+    project_Rosen._active_indeces2 = [False for i in range(n)]
 
     # Input check - - - - - - - - - - -
     (d1, d2) = K.shape

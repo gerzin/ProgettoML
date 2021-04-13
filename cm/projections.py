@@ -193,10 +193,13 @@ def project_Rosen(d1, d2, x1, x2, u):
     n = len(x1)
 
     eps = 1e-12
+    _u = u - eps
 
     # Active components masks
-    active_indeces1 = [(x1[i] < eps and d1[i] < 0) or (x1[i] > (u - eps) and d1[i] > 0) for i in range(n)]
-    active_indeces2 = [(x2[i] < eps and d2[i] < 0) or (x2[i] > (u - eps) and d2[i] > 0) for i in range(n)]
+    active_indeces1 = project_Rosen._active_indeces1
+    active_indeces2 = project_Rosen._active_indeces2
+    #active_indeces1 = [(x1[i] < eps and d1[i] < 0) or (x1[i] > _u and d1[i] > 0) for i in range(n)]
+    #active_indeces2 = [(x2[i] < eps and d2[i] < 0) or (x2[i] > _u and d2[i] > 0) for i in range(n)]
     active_indeces = np.concatenate((active_indeces1, active_indeces2), axis=None)
 
     n_active1 = sum(active_indeces1)
@@ -221,13 +224,13 @@ def project_Rosen(d1, d2, x1, x2, u):
     changed = True
     count = 0
     while(changed):
-
         changed = False
         count += 1
+        #print(active_indeces)
 
         # Compute the Lagrange multipliers
         Ak = np.array(
-            [1 if v == u else -1 for v in itertools.chain(x1[active_indeces1], x2[active_indeces2])])
+            [1 if v > _u else -1 for v in itertools.chain(x1[active_indeces1], x2[active_indeces2])])
         bk = np.copy(Ak)
         bk[n_active1:] = np.negative(bk[n_active1:])
         mu = Ak*d[active_indeces] - bk/f * sum_pos + bk/f * sum_neg
@@ -238,6 +241,7 @@ def project_Rosen(d1, d2, x1, x2, u):
         for i in range(n):
             if active_indeces1[i]:
                 if mu[k] < 0:
+                    #print("\t\t\tmu[k]<0")
                     active_indeces1[i] = False
                     active_indeces[i] = False
                     n_active1 -= 1
@@ -258,7 +262,7 @@ def project_Rosen(d1, d2, x1, x2, u):
         for i in range(n):
             if active_indeces2[i]:
                 if mu[k] < 0:
-                    # print("\t\t\tmu[k]<0")
+                    #print("\t\t\tmu[k]<0")
                     active_indeces2[i] = False
                     active_indeces[n+i] = False
                     n_active2 -= 1
@@ -289,7 +293,7 @@ def project_Rosen(d1, d2, x1, x2, u):
         # Check if the projection does not point outside the feasible region
         # In case one component does, add it to the active set
         for i in range(n):
-            if (x1[i] < eps and proj1[i] < 0) or (x1[i] > (u - eps) and proj1[i] > 0):
+            if (x1[i] < eps and proj1[i] < 0) or (x1[i] > _u and proj1[i] > 0):
                 #print("\t\t\tproj[i] wrong")
                 active_indeces1[i] = True
                 active_indeces[i] = True
@@ -309,7 +313,7 @@ def project_Rosen(d1, d2, x1, x2, u):
             continue
 
         for i in range(n):
-            if (x2[i] < eps and proj2[i] < 0) or (x2[i] > (u - eps) and proj2[i] > 0):
+            if (x2[i] < eps and proj2[i] < 0) or (x2[i] > _u and proj2[i] > 0):
                 #print("\t\t\tproj[i] wrong")
                 active_indeces2[i] = True
                 active_indeces[n+i] = True
