@@ -10,12 +10,13 @@ from random import randint
 import sys
 
 if __name__ == '__main__':
-    n = 50
+    n = 500
     u = 1.
     l = -1.
     epsilon = 0.1
 
     a = randint(1, 10000000)
+    a = 6530600
     print(a)
     #Q, q = genBCQP(n, actv=0.9, ecc=0.5, u=u, seed=a)
 
@@ -23,26 +24,28 @@ if __name__ == '__main__':
     feat = feat.to_numpy()
     targ = targ.to_numpy()
 
-    Q, q = sample_transform_problem(feat, targ[:, 0], 200)
+    Q, q = sample_transform_problem(feat, targ[:, 0], n, a)
 
     # A = np.block([[Q, -Q], [-Q, Q]])
     # b = np.block([epsilon - q, epsilon + q])
     # a = np.block([np.ones(n), -np.ones(n)])
 
+    
     start1 = time()
-    s1, x1, v1 = SLBQP(Q, q, u, epsilon, eps=1e-6, maxIter=-1,
-                       lmb0=0, d_lmb=2, prj_eps=1e-9, verbose=True, prj_type=2)
+    s1, x1, v1, it1 = SLBQP(Q, q, u, epsilon, eps=1e-6, maxIter=-1,
+                       lmb0=0, d_lmb=2, prj_eps=1e-9, verbose=False, prj_type=2)
     end1 = time()
     print("info ROS:")
-    print(f"x: {x1} ({s1})\tv: {v1}\ttime: {end1-start1}")
+    print(f"x: {x1} ({s1})\tv: {v1}\ttime: {end1-start1}\titer: {it1}")
+    
 
     ######
-    start1 = time()
-    s1, x1, v1 = SLBQP(Q, q, u, epsilon, eps=1e-6, maxIter=-1,
-                       lmb0=0, d_lmb=2, prj_eps=1e-9, verbose=True, prj_type=1)
-    end1 = time()
+    start2 = time()
+    s2, x2, v2, it2 = SLBQP(Q, q, u, epsilon, eps=1e-6, maxIter=-1,
+                       lmb0=0, d_lmb=2, prj_eps=1e-9, verbose=False, prj_type=1)
+    end2 = time()
     print("info GOLD:")
-    print(f"x: {x1} ({s1})\tv: {v1}\ttime: {end1-start1}")
+    print(f"x: {x2} ({s2})\tv: {v2}\ttime: {end2-start2}\titer: {it2}")
     ######
 
     # _G, _A, _h, _b = build_problem(2*n, u)

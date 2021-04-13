@@ -92,7 +92,7 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
     q1 = epsilon - y
     q2 = epsilon + y
 
-    i = 0
+    i = 1
     # End of initialization - - - - - - -
 
     if verbose:
@@ -139,11 +139,11 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
         if(d_norm < eps):
             if verbose:
                 print("")
-            return ('optimal', np.block([x1, x2]), v)
+            return ('optimal', np.block([x1, x2]), v, i)
         if(maxIter > 0 and i >= maxIter):
             if verbose:
                 print("")
-            return ('terminated', np.block([x1, x2]), v)
+            return ('terminated', np.block([x1, x2]), v, i)
 
         # Compute the maximum feasible stepsize - - - - -
         max_step = np.Inf
