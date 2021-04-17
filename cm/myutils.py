@@ -86,7 +86,7 @@ def separate_feature(df, nlast=1):
         features, targets
     """
     target_points = df[df.columns[-nlast:]]
-    target_points.columns = ['X', 'Y']
+    #target_points.columns = ['X', 'Y']
     feature_points = df[df.columns[:-nlast]]
     feature_points.columns = [str(i+1)
                               for i in range(len(feature_points.columns))]
@@ -98,7 +98,7 @@ def randomsample(mat, n):
     r, c = mat.shape
     assert(r >= n)
     M = mat.to_numpy() if type(mat) is pd.core.frame.DataFrame else mat
-    return M[np.random.choice(r, n, repla=False), :]
+    return M[np.random.choice(r, n, replace=False), :]
 
 
 def sample_transform_problem(feature, target, size, seed=None):
@@ -110,8 +110,12 @@ def sample_transform_problem(feature, target, size, seed=None):
     assert(r >= size)
     rand_ind = np.random.choice(r, size, replace=False)
 
-    featuresamp = feature[rand_ind, :]
-    targetsamp = target[rand_ind]
+    M = feature.to_numpy() if type(feature) is pd.core.frame.DataFrame else feature
+    T = target.to_numpy() if type(target) is pd.core.frame.DataFrame else target
+    if(T.shape[1] == 1): T = T.flatten()
+
+    featuresamp = M[rand_ind, :]
+    targetsamp = T[rand_ind]
 
     K = compute_kernel_matrix(featuresamp, rbf)
     return K, targetsamp
