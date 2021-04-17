@@ -3,6 +3,8 @@
 import numpy as np
 import itertools
 from projections import project_Rosen, project_Goldstein
+from datastorer import DataStorer
+import time
 #from numba import jit, njit
 
 """
@@ -38,7 +40,7 @@ For the projection, two options are available:
 """
 
 
-def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False, prj_type=1):
+def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False, prj_type=1, ds=None):
     """
     Solve the quadratic problem using a projected gradient method.
 
@@ -64,7 +66,6 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
         x           -- point that minimize the function
         v           -- minimum value of the function
     """
-
     # Problem dimension
     n = len(y)
     project_Rosen._active_indeces1 = [False for i in range(n)]
@@ -97,9 +98,11 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
 
     if verbose:
         if(prj_type == 1):
-            print("Iter.\tFunction val\tProj.\t||gradient||\t||direction||\tStepsize\tMaxStep")
+            print(
+                "Iter.\tFunction val\tProj.\t||gradient||\t||direction||\tStepsize\tMaxStep")
         else:
-            print("Iter.\tFunction val\tDegen.\t||gradient||\t||direction||\tStepsize\tMaxStep")
+            print(
+                "Iter.\tFunction val\tDegen.\t||gradient||\t||direction||\tStepsize\tMaxStep")
 
     while True:
         # Compute function value (v) and gradient (g) - - -
@@ -132,17 +135,24 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
 
         # Print stats - - - - - - - - - - -
         if verbose:
-            print("%5d\t%1.8e\t%5d\t%1.8e\t%1.8e" % (i, v, count, g_norm, d_norm), end="")
+            print("%5d\t%1.8e\t%5d\t%1.8e\t%1.8e" %
+                  (i, v, count, g_norm, d_norm), end="")
         # - - - - - - - - - - - - - - - - -
 
         # Check for termination
         if(d_norm < eps):
             if verbose:
                 print("")
+            if ds is not None:
+                ds.push(iter=i, val=v, proj=count, gnorm=g_norm,
+                        dnorm=d_norm, step=0, maxstep=0)
             return ('optimal', np.block([x1, x2]), v, i)
         if(maxIter > 0 and i >= maxIter):
             if verbose:
                 print("")
+            if ds is not None:
+                ds.push(iter=i, val=v, proj=count, gnorm=g_norm,
+                        dnorm=d_norm, step=0, maxstep=0)
             return ('terminated', np.block([x1, x2]), v, i)
 
         # Compute the maximum feasible stepsize - - - - -
@@ -184,5 +194,8 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
         # Compute next iterate
         x1 = x1 + step * d1
         x2 = x2 + step * d2
+        if ds is not None:
+            ds.push(iter=i, val=v, proj=count, gnorm=g_norm,
+                    dnorm=d_norm, step=step, maxstep=max_step)
 
         i = i + 1

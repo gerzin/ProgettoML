@@ -112,7 +112,10 @@ def sample_transform_problem(feature, target, size, seed=None):
 
     M = feature.to_numpy() if type(feature) is pd.core.frame.DataFrame else feature
     T = target.to_numpy() if type(target) is pd.core.frame.DataFrame else target
-    if(T.shape[1] == 1): T = T.flatten()
+    if len(T.shape) > 1:
+        if(T.shape[1] == 1): T = T.flatten()
+
+    
 
     featuresamp = M[rand_ind, :]
     targetsamp = T[rand_ind]
@@ -221,7 +224,7 @@ def load_ml_dataset():
                      comment='#', skiprows=7, header=None, index_col=0)
     features, targets = separate_feature(df, 2)
 
-    return features, targets
+    return features.to_numpy(), targets.to_numpy()
 
 
 def load_airfoil_dataset():
@@ -233,7 +236,7 @@ def load_airfoil_dataset():
     df.columns = ['Frequency (HZ)', 'Angle of attack (deg)', 'Chord length (m)', 'Free-stream velocity (m/s)',
                   'Suction side displacement thickness (m)', 'Scaled sound pressure level (db)']
     df, targets = separate_feature(df, 1)
-    return df, targets
+    return df.to_numpy(), targets.to_numpy()
 
 
 def load_california_dataset():

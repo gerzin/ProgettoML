@@ -28,7 +28,7 @@ class DataStorer:
             self.filename = (datetime.now().strftime(
                 "%d-%b-%Y (%H:%M:%S.%f)")) + ".data"
         name = filename if filename is not None else self.filename
-        self.df.to_csv(name)
+        self.df.to_csv(name, index=False)
 
     def push(self, **kwargs):
         """
