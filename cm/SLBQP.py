@@ -138,21 +138,22 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
             print("%5d\t%1.8e\t%5d\t%1.8e\t%1.8e" %
                   (i, v, count, g_norm, d_norm), end="")
         # - - - - - - - - - - - - - - - - -
-
+        x1old, x2old = np.zeros(n), np.zeros(n)
+        x_norm = np.sqrt(((x1-x1old) @  (x1-x1old))+((x2-x2old) @  (x2-x2old)))
         # Check for termination
         if(d_norm < eps):
             if verbose:
                 print("")
             if ds is not None:
                 ds.push(iter=i, val=v, proj=count, gnorm=g_norm,
-                        dnorm=d_norm, step=0, maxstep=0)
+                        dnorm=d_norm, xnorm=x_norm, step=0, maxstep=0)
             return ('optimal', np.block([x1, x2]), v, i)
         if(maxIter > 0 and i >= maxIter):
             if verbose:
                 print("")
             if ds is not None:
                 ds.push(iter=i, val=v, proj=count, gnorm=g_norm,
-                        dnorm=d_norm, step=0, maxstep=0)
+                        dnorm=d_norm, xnorm=x_norm, step=0, maxstep=0)
             return ('terminated', np.block([x1, x2]), v, i)
 
         # Compute the maximum feasible stepsize - - - - -
@@ -190,12 +191,14 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
         # Print stats
         if verbose:
             print("\t%1.8e\t%1.8e" % (step, max_step))
-
+        # TODO rimuovere x1old dopo aver calcolato le statistiche
+        x1old = x1.copy()
+        x2old = x2.copy()
         # Compute next iterate
         x1 = x1 + step * d1
         x2 = x2 + step * d2
         if ds is not None:
             ds.push(iter=i, val=v, proj=count, gnorm=g_norm,
-                    dnorm=d_norm, step=step, maxstep=max_step)
+                    dnorm=d_norm, xnorm=x_norm, step=step, maxstep=max_step)
 
         i = i + 1
