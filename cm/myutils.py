@@ -5,6 +5,8 @@ from time import time
 from numba import jit, njit, prange
 import pandas as pd
 import csv
+import matplotlib
+import matplotlib.pyplot as plt
 
 
 def print_invocation(f):
@@ -243,3 +245,25 @@ def load_california_dataset():
     from sklearn.datasets.california_housing import fetch_california_housing
     data = fetch_california_housing()
     return pd.DataFrame(data.data, columns=data.feature_names)
+
+def plot_multiple_functions(functions, plot_avg=False, ax=None):
+    plt = None
+    if ax is not None:
+        plt=ax
+    else:
+        plt = matplotlib.pyplot
+    for points in functions:
+        plt.plot([*range(len(points))], points, color="cornflowerblue")
+    if plot_avg:
+        """
+        calcola la lunghezza "m" della lista più piccola e poi calcola la media
+        considerando i primi m elementi di ogni lista
+        """
+        minlength = min(map(lambda x : len(x), functions))
+        cropped_functions = map(lambda x : x[:minlength], functions)
+        nfun = len(functions)
+        average = [sum(i)/nfun for i in zip(*cropped_functions)]
+        plt.plot([*range(minlength)], average, label="average", color="blue")
+        plt.legend()
+    if ax is None:
+        plt.show()
