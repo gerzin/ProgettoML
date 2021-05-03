@@ -246,14 +246,15 @@ def load_california_dataset():
     data = fetch_california_housing()
     return pd.DataFrame(data.data, columns=data.feature_names)
 
-def plot_multiple_functions(functions, plot_avg=False, ax=None):
+def plot_multiple_functions(functions, plot_avg=False, ax=None, color=None, col_avg=None, label="average"):
     plt = None
     if ax is not None:
         plt=ax
     else:
         plt = matplotlib.pyplot
     for points in functions:
-        plt.plot([*range(len(points))], points, color="cornflowerblue")
+        col = "cornflowerblue" if color is None else color
+        plt.plot([*range(len(points))], points, color=col)
     if plot_avg:
         """
         calcola la lunghezza "m" della lista più piccola e poi calcola la media
@@ -263,7 +264,8 @@ def plot_multiple_functions(functions, plot_avg=False, ax=None):
         cropped_functions = map(lambda x : x[:minlength], functions)
         nfun = len(functions)
         average = [sum(i)/nfun for i in zip(*cropped_functions)]
-        plt.plot([*range(minlength)], average, label="average", color="blue")
+        col_avg = "blue" if col_avg is None else col_avg
+        plt.plot([*range(minlength)], average, label=label, color=col_avg)
         plt.legend()
     if ax is None:
         plt.show()
