@@ -244,7 +244,7 @@ def load_airfoil_dataset():
 def load_california_dataset():
     from sklearn.datasets.california_housing import fetch_california_housing
     data = fetch_california_housing()
-    return pd.DataFrame(data.data, columns=data.feature_names)
+    return data.data, data.target
 
 def plot_multiple_functions(functions, plot_avg=False, ax=None, color=None, col_avg=None, label="average"):
     plt = None
@@ -254,7 +254,7 @@ def plot_multiple_functions(functions, plot_avg=False, ax=None, color=None, col_
         plt = matplotlib.pyplot
     for points in functions:
         col = "cornflowerblue" if color is None else color
-        plt.plot([*range(len(points))], points, color=col)
+        plt.plot([*range(1,1+len(points))], points, color=col)
     if plot_avg:
         """
         calcola la lunghezza "m" della lista più piccola e poi calcola la media
@@ -265,7 +265,7 @@ def plot_multiple_functions(functions, plot_avg=False, ax=None, color=None, col_
         nfun = len(functions)
         average = [sum(i)/nfun for i in zip(*cropped_functions)]
         col_avg = "blue" if col_avg is None else col_avg
-        plt.plot([*range(minlength)], average, label=label, color=col_avg)
+        plt.plot([*range(1, 1+minlength)], average, label=label, color=col_avg)
         plt.legend()
     if ax is None:
         plt.show()
