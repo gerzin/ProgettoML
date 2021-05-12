@@ -224,6 +224,9 @@ def project_Rosen(d1, d2, x1, x2, u):
     changed = True
     count = 0
     while(changed):
+        if f == 0:
+            return proj1, proj2, count
+            
         changed = False
         count += 1
         #print(active_indeces)
@@ -283,7 +286,7 @@ def project_Rosen(d1, d2, x1, x2, u):
 
         # Compute the projection
         if(f == 0):
-            return proj1, proj2
+            return proj1, proj2, count
         else:
             v = (sum_pos - sum_neg) / f
 
