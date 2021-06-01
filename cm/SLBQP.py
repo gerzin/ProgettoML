@@ -40,7 +40,6 @@ For the projection, two options are available:
 
 """
 
-@time_program
 def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, prj_eps=1e-6, verbose=False, prj_type=1, ds=None):
     """
     Solve the quadratic problem using a projected gradient method.

@@ -21,7 +21,7 @@ def time_program(f):
         
         avg = sum(times[1:])/len(times[1:])
         print(f"Time: {avg}")
-        return ret
+        return ret, times
     return wrapper
 
 
