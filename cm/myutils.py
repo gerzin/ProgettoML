@@ -13,14 +13,14 @@ import time
 def time_program(f):
     def wrapper(*args, **kwargs):
         times = []
-        for i in range(11):
+        for i in range(5):
             before = time.time()
             ret = f(*args, **kwargs)
             elapsed = time.time() - before
             times.append(elapsed)
         
         avg = sum(times[1:])/len(times[1:])
-        print("Time: {avg}")
+        print(f"Time: {avg}")
         return ret
     return wrapper
 
