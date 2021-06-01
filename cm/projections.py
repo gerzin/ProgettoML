@@ -1,9 +1,23 @@
 import numpy as np
 import itertools
 from numba import njit, prange
+import time
 
+def time_program(f):
+    def wrapper(*args, **kwargs):
+        times = []
+        for i in range(5):
+            before = time.time()
+            ret = f(*args, **kwargs)
+            elapsed = time.time() - before
+            times.append(elapsed)
+        
+        avg = sum(times[1:])/len(times[1:])
+        print(f"Time: {avg}")
+        return ret
+    return wrapper
 
-@njit
+#@njit
 def custom_clip(a, min, max):
     for i in prange(len(a)):
         if a[i] < min:
@@ -13,7 +27,7 @@ def custom_clip(a, min, max):
     return a
 
 
-@njit()
+#@njit()
 def compute_x_r(d1, d2, lmb, u):
     """Compute the optimal value for x given lambda.
 
@@ -35,11 +49,12 @@ def compute_x_r(d1, d2, lmb, u):
     x2 = d2 - lmb
 
     # 'Apply' the box constraints
-    #x1 = np.clip(x1, 0, u)
-    #x2 = np.clip(x2, 0, u)
-    x1 = custom_clip(x1, 0, u)
-    x2 = custom_clip(x2, 0, u)
-
+    x1 = np.clip(x1, 0, u)
+    x2 = np.clip(x2, 0, u)
+    
+    #x1 = custom_clip(x1, 0, u)
+    #x2 = custom_clip(x2, 0, u)
+    
     # r = a'x
     # with a = [1...1,-1...-1]
     r = np.sum(x1) - np.sum(x2)

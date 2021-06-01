@@ -8,6 +8,22 @@ import csv
 import matplotlib
 import matplotlib.pyplot as plt
 
+import time
+
+def time_program(f):
+    def wrapper(*args, **kwargs):
+        times = []
+        for i in range(11):
+            before = time.time()
+            ret = f(*args, **kwargs)
+            elapsed = time.time() - before
+            times.append(elapsed)
+        
+        avg = sum(times[1:])/len(times[1:])
+        print("Time: {avg}")
+        return ret
+    return wrapper
+
 
 def print_invocation(f):
     """Decorator that prints when a function has been invocated and when it returns.
