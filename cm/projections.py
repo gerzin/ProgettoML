@@ -4,7 +4,7 @@ from numba import njit, prange
 import time
 
 
-#@njit
+@njit
 def custom_clip(a, min, max):
     for i in prange(len(a)):
         if a[i] < min:
@@ -14,7 +14,7 @@ def custom_clip(a, min, max):
     return a
 
 
-#@njit()
+@njit()
 def compute_x_r(d1, d2, lmb, u):
     """Compute the optimal value for x given lambda.
 
@@ -36,11 +36,11 @@ def compute_x_r(d1, d2, lmb, u):
     x2 = d2 - lmb
 
     # 'Apply' the box constraints
-    x1 = np.clip(x1, 0, u)
-    x2 = np.clip(x2, 0, u)
+    #x1 = np.clip(x1, 0, u)
+    #x2 = np.clip(x2, 0, u)
     
-    #x1 = custom_clip(x1, 0, u)
-    #x2 = custom_clip(x2, 0, u)
+    x1 = custom_clip(x1, 0, u)
+    x2 = custom_clip(x2, 0, u)
     
     # r = a'x
     # with a = [1...1,-1...-1]

@@ -123,7 +123,7 @@ def sample_transform_problem(feature, target, size, seed=None):
     """
     samples a subset of the input matrices/vectors and applies a kernel.
     """
-    np.random.seed(seed)
+    #np.random.seed(seed)
     r, c = feature.shape
     assert(r >= size)
     rand_ind = np.random.choice(r, size, replace=False)
