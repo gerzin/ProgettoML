@@ -7,8 +7,32 @@ import pandas as pd
 import csv
 import matplotlib
 import matplotlib.pyplot as plt
+from cvxopt import matrix
+from cvxopt import solvers
 
 import time
+
+def solve_with_cvxopt(K, target, epsilon, u):
+    """build and solve the problem with the cvxopt primal-dual solver and returns the 
+    dual solution."""
+    
+    size = len(target)
+
+    Q = matrix(np.block([[K, -K], [-K, K]]))
+    
+    q = matrix(np.block([epsilon - target, epsilon + target]))
+    
+    G = matrix(np.block([[np.eye(2*size)], [-np.eye(2*size)]]))
+    
+    h = np.zeros(4*size)
+    h[0:2*size] = u
+    h = matrix(h)
+
+    A = matrix(np.block([[np.ones(size), -np.ones(size)]]))
+    
+    b = matrix(np.zeros(1))
+    sol = solvers.qp(Q, q, G, h, A, b)
+    return sol['dual objective']
 
 def time_program(f):
     def wrapper(*args, **kwargs):
