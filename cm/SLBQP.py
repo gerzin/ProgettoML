@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
-
 import numpy as np
-import itertools
 from projections import project_Rosen, project_Goldstein
 from datastorer import DataStorer
-import time
 from myutils import time_program
-#from numba import jit, njit
 
 """
 SLBQP: Solves the singly linearly box contrained quadratic problem:
@@ -57,6 +53,7 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
         lmb0        -- initial lambda value for the projection algorithm (Goldstain)
         d_lmb       -- initial delta_lambda value for the projection algorithm (Goldtsian)
         prj_eps     -- precision of the projection
+
         verbose     -- print more stats
         prj_type    -- type of projection. 1 = Goldstein, 2 = Rosen
 
