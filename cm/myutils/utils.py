@@ -13,7 +13,15 @@ from cvxopt import solvers
 import time
 
 def solve_with_cvxopt(K, target, epsilon, u):
-    """Builds and solves the problem with the cvxopt primal-dual solver"""
+    """Builds and solves the problem with the cvxopt primal-dual solver
+    Params:
+        K
+        target
+        epsilon
+        u
+    Returns:
+        sol     --  object containing the primal and dual solutions.
+    """
     
     size = len(target)
 
@@ -34,54 +42,7 @@ def solve_with_cvxopt(K, target, epsilon, u):
     return sol['dual objective']
     # return sol
 
-def time_program(f):
-    def wrapper(*args, **kwargs):
-        times = []
-        for i in range(5):
-            before = time.time()
-            ret = f(*args, **kwargs)
-            elapsed = time.time() - before
-            times.append(elapsed)
-        
-        avg = sum(times[1:])/len(times[1:])
-        print(f"Time: {avg}")
-        return ret, times
-    return wrapper
 
-
-def print_invocation(f):
-    """Decorator that prints when a function has been invocated and when it returns.
-
-    It also prints the return value.
-    """
-    def wrapper(*args, **kwargs):
-        print(f"{f.__name__} called")
-        ret = f(*args, **kwargs)
-        print(f"{f.__name__} returned {ret}")
-        return ret
-    return wrapper
-
-
-def dump_args(f):
-    """Decorator that prints when a function has been invocated and its parameters."""
-    argnames = f.__code__.co_varnames
-
-    def wrapper(*args, **kwargs):
-        argval = ','.join('%s=%r' % entry for entry in zip(argnames, args))
-        print(f"{f.__name__}({argval})")
-        return f(*args, **kwargs)
-    return wrapper
-
-
-def time_it(f):
-    """Decorator that prints the time in seconds the function took to run."""
-    def wrapper(*args, **kw):
-        ts = time()
-        result = f(*args, **kw)
-        te = time()
-        print(f"{f.__name__} took {te-ts}")
-        return result
-    return wrapper
 
 
 def load_data(csvfile, delfirst=True, shuffle=False, split=True):
@@ -189,47 +150,6 @@ def compute_kernel_matrix(dataset, dot_product=linear):
 
     return K
 
-
-# colors
-RED = "\033[1;31m"
-BLUE = "\033[1;34m"
-CYAN = "\033[1;36m"
-GREEN = "\033[0;32m"
-RESET = "\033[0;0m"
-BOLD = "\033[;1m"
-REVERSE = "\033[;7m"
-
-
-def print_decreasing(ite, v, g_norm, d_norm, old=None):
-    formatter = ""
-    if old is None:
-        formatter = "%5d\t{}%1.16e\t{}%1.16e\t{}%1.16e\033[0;0m".format(
-            GREEN, GREEN, GREEN)
-    else:
-        new = (ite, v, g_norm, d_norm)
-        values = []
-        for i in range(4):
-            if old[i] - new[i] > 0:
-                values.append(GREEN)
-            else:
-                values.append(RED)
-        formatter = "%5d\t{0}%1.16e\t{1}%1.16e\t{2}%1.16e\033[0;0m".format(
-            values[1], values[2], values[3])
-    print(formatter % (ite, v, g_norm, d_norm), end="")
-    return (ite, v, g_norm, d_norm)
-
-
-def dump_on_file(filename):
-    """Decorator that appends the result of f on a file."""
-    def decorator(function):
-        def wrapper(*args, **kw):
-            result = function(*args, **kw)
-            with open(filename, "a") as f:
-                writer = csv.writer(f)
-                writer.writerow(result)
-            return result
-        return wrapper
-    return decorator
 
 
 def load_ml_dataset():
