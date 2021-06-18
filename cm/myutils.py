@@ -13,8 +13,7 @@ from cvxopt import solvers
 import time
 
 def solve_with_cvxopt(K, target, epsilon, u):
-    """build and solve the problem with the cvxopt primal-dual solver and returns the 
-    dual solution."""
+    """Builds and solves the problem with the cvxopt primal-dual solver"""
     
     size = len(target)
 
@@ -33,6 +32,7 @@ def solve_with_cvxopt(K, target, epsilon, u):
     b = matrix(np.zeros(1))
     sol = solvers.qp(Q, q, G, h, A, b)
     return sol['dual objective']
+    # return sol
 
 def time_program(f):
     def wrapper(*args, **kwargs):
@@ -105,20 +105,6 @@ def load_data(csvfile, delfirst=True, shuffle=False, split=True):
         return loaded_data
 
 
-# @jit(nopython=True)
-def shuffleRows(M):
-    """Shuffles the rows of a matrix"""
-    np.random.shuffle(M)
-
-
-@jit(nopython=True)
-def splitHorizontally(matrix, percentage):
-    """Split matrix horizontally and returns the two matrices."""
-    assert 0 <= percentage <= 1
-    lenM1 = round(matrix.shape[0]*percentage)
-    return matrix[0:lenM1], matrix[lenM1:]
-
-
 def separate_feature(df, nlast=1):
     """separates the features from the target variables.
     Params:
@@ -135,6 +121,7 @@ def separate_feature(df, nlast=1):
     return feature_points, target_points
 
 
+# Togliere ?
 def randomsample(mat, n):
     """samples a random subset of size n from a matrix."""
     r, c = mat.shape
@@ -201,18 +188,6 @@ def compute_kernel_matrix(dataset, dot_product=linear):
             K[j, i] = v
 
     return K
-
-
-@jit(nopython=True)
-def scale(arr):
-    M, m = max(arr), min(arr)
-    scaled = (arr-m)/(M - m)
-    return scaled, M, m
-
-
-@jit(nopython=True)
-def scale_back(scaled, M, m):
-    return scaled*(M-m)+m
 
 
 # colors
