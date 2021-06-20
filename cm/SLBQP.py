@@ -7,9 +7,22 @@ from myutils import time_program
 """
 SLBQP: Solves the singly linearly box contrained quadratic problem:
 
-    min { (1/2)x'Qx + qx : ax = 0, 0 <= x <= u }
+    min { (1/2)x'Qx + qx : ax = 0, 0 <= x <= C }
 
-using the projected gradient method.
+using the gradient projection method.
+
+The matrix 'Q' a symmetric matrix with the structure [ K -K; -K  K ]
+where 'K' is the kernel matrix (symmetric positive semidefinite)
+
+The vector 'q' is composed of two blocks: [epsilon - y, epsilon + y]'
+where 'y' is the vector of targets and 'epsilon' is the SVR parameter
+
+The vector 'a' definies the linear constraint and is made of two block: [1...1, -1...-1]
+where each block has length n = len(y)
+
+'C' is the SVR parameter defining the weight of the slack variables and is used as
+upper bound for the box contraints
+
 
 For the projection, two options are available:
 
@@ -27,7 +40,7 @@ For the projection, two options are available:
 
     The point is to find a λ such that r(λ) = a'x(λ) = 0 in order to satisfy the KKT
     conditions for the initial minimization problem.
-    To do so, we look for the root of r(λ) using the secand method.
+    To do so, we look for the root of r(λ) using the secant method.
     Therefor, we first look for an interval containing the solution (BRACKETING PHASE)
     and then we look for the root (SECANT PHASE)
 
@@ -46,7 +59,7 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
         y           -- coeff. used to build q (q = [epsilon - y, epsilon + y])
         C           -- upper bound for the feasible points
         epsilon     -- coeff. used to build q (q = [epsilon - y, epsilon + y])
-        eps         -- precision for the stopping condition. | direction | < eps
+        eps         -- precision for the stopping condition. || direction || < eps
         maxIter     -- max number of iterations (<= 0 for unbounded number of iterations)
 
         alpha       -- stepsize along the gradient to project (Goldstain)
@@ -57,16 +70,17 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
         verbose     -- print more stats
         prj_type    -- type of projection. 1 = Goldstein, 2 = Rosen
 
+        ds          -- DataStorer to save the run statistics
+
     Returns:
         status      -- status of the execution. "terminated" if the program
                        has reached MaxIter. "optimal" otherwise.
         x           -- point that minimize the function
         v           -- minimum value of the function
     """
+
     # Problem dimension
     n = len(y)
-    project_Rosen._active_indeces1 = [False for i in range(n)]
-    project_Rosen._active_indeces2 = [False for i in range(n)]
 
     # Input check - - - - - - - - - - -
     (d1, d2) = K.shape
@@ -89,6 +103,11 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
     # q = [q1, q2]
     q1 = epsilon - y
     q2 = epsilon + y
+
+    # Active set for Rosen projection
+    if prj_type == 2:
+        project_Rosen._active_indeces1 = [False for i in range(n)]
+        project_Rosen._active_indeces2 = [False for i in range(n)]
 
     i = 1
     # End of initialization - - - - - - -
@@ -135,8 +154,10 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
             print("%5d\t%1.8e\t%5d\t%1.8e\t%1.8e" %
                   (i, v, count, g_norm, d_norm), end="")
         # - - - - - - - - - - - - - - - - -
+
         x1old, x2old = np.zeros(n), np.zeros(n)
         x_norm = np.sqrt(((x1-x1old) @  (x1-x1old))+((x2-x2old) @  (x2-x2old)))
+        
         # Check for termination
         if(d_norm < eps):
             if verbose:
@@ -188,9 +209,11 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
         # Print stats
         if verbose:
             print("\t%1.8e\t%1.8e" % (step, max_step))
+
         # TODO rimuovere x1old dopo aver calcolato le statistiche
         x1old = x1.copy()
         x2old = x2.copy()
+
         # Compute next iterate
         x1 = x1 + step * d1
         x2 = x2 + step * d2

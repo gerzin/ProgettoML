@@ -176,9 +176,8 @@ def project_Goldstein(d1, d2, u, lmb, d_lmb, eps):
     return x1, x2
 
 
-# @njit
 def project_Rosen(d1, d2, x1, x2, u):
-    """ Rosen projection of d over the feasible region 0 <= x <= u
+    """ Rosen projection of d over the feasible region { 0 <= x <= u, ax = 0 }
 
     Params:
         d1  -- first block of the direction vector
@@ -190,18 +189,19 @@ def project_Rosen(d1, d2, x1, x2, u):
     Returns:
         proj1  -- first block of the projected gradient
         proj2  -- second block of the projected gradient
+        count  -- number of iteration executed
     """
 
     n = len(x1)
 
-    eps = 1e-12
+    eps = 1e-9
     _u = u - eps
 
     # Active components masks
+    # active_indeces1 = [(x1[i] < eps and d1[i] < 0) or (x1[i] > _u and d1[i] > 0) for i in range(n)]
+    # active_indeces2 = [(x2[i] < eps and d2[i] < 0) or (x2[i] > _u and d2[i] > 0) for i in range(n)]
     active_indeces1 = project_Rosen._active_indeces1
     active_indeces2 = project_Rosen._active_indeces2
-    #active_indeces1 = [(x1[i] < eps and d1[i] < 0) or (x1[i] > _u and d1[i] > 0) for i in range(n)]
-    #active_indeces2 = [(x2[i] < eps and d2[i] < 0) or (x2[i] > _u and d2[i] > 0) for i in range(n)]
     active_indeces = np.concatenate((active_indeces1, active_indeces2), axis=None)
 
     n_active1 = sum(active_indeces1)
@@ -226,12 +226,11 @@ def project_Rosen(d1, d2, x1, x2, u):
     changed = True
     count = 0
     while(changed):
-        if f == 0:
-            return proj1, proj2, count
-            
         changed = False
         count += 1
-        #print(active_indeces)
+        
+        if f == 0:
+            return proj1, proj2, count
 
         # Compute the Lagrange multipliers
         Ak = np.array(
@@ -246,7 +245,6 @@ def project_Rosen(d1, d2, x1, x2, u):
         for i in range(n):
             if active_indeces1[i]:
                 if mu[k] < 0:
-                    #print("\t\t\tmu[k]<0")
                     active_indeces1[i] = False
                     active_indeces[i] = False
                     n_active1 -= 1
@@ -267,7 +265,6 @@ def project_Rosen(d1, d2, x1, x2, u):
         for i in range(n):
             if active_indeces2[i]:
                 if mu[k] < 0:
-                    #print("\t\t\tmu[k]<0")
                     active_indeces2[i] = False
                     active_indeces[n+i] = False
                     n_active2 -= 1
@@ -287,10 +284,10 @@ def project_Rosen(d1, d2, x1, x2, u):
         # - - - - - - - - - - - - - - - - - - - -
 
         # Compute the projection
-        if(f == 0):
-            return proj1, proj2, count
-        else:
-            v = (sum_pos - sum_neg) / f
+        #if f == 0:
+        #    return proj1, proj2, count
+        #else:
+        v = (sum_pos - sum_neg) / f
 
         proj1[free_indeces1] = d1[free_indeces1] - v
         proj2[free_indeces2] = d2[free_indeces2] + v
@@ -299,7 +296,6 @@ def project_Rosen(d1, d2, x1, x2, u):
         # In case one component does, add it to the active set
         for i in range(n):
             if (x1[i] < eps and proj1[i] < 0) or (x1[i] > _u and proj1[i] > 0):
-                #print("\t\t\tproj[i] wrong")
                 active_indeces1[i] = True
                 active_indeces[i] = True
                 n_active1 += 1
@@ -319,7 +315,6 @@ def project_Rosen(d1, d2, x1, x2, u):
 
         for i in range(n):
             if (x2[i] < eps and proj2[i] < 0) or (x2[i] > _u and proj2[i] > 0):
-                #print("\t\t\tproj[i] wrong")
                 active_indeces2[i] = True
                 active_indeces[n+i] = True
                 n_active2 += 1
