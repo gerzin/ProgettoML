@@ -1,7 +1,6 @@
 import pathlib
 import argparse
 import numpy as np
-from time import time
 from numba import jit, njit, prange
 import pandas as pd
 import csv
@@ -10,15 +9,14 @@ import matplotlib.pyplot as plt
 from cvxopt import matrix
 from cvxopt import solvers
 
-import time
 
 def solve_with_cvxopt(K, target, epsilon, u):
     """Builds and solves the problem with the cvxopt primal-dual solver
     Params:
-        K
-        target
-        epsilon
-        u
+        K       -- kernel matrix used as block to build Q
+        target  -- target vector to build vector q
+        epsilon -- coefficient used to build vector q
+        u       -- upper bound for the feasible region
     Returns:
         sol     --  object containing the primal and dual solutions.
     """
@@ -39,56 +37,8 @@ def solve_with_cvxopt(K, target, epsilon, u):
     
     b = matrix(np.zeros(1))
     sol = solvers.qp(Q, q, G, h, A, b)
-    #return sol['dual objective']
     return sol
 
-
-
-
-def load_data(csvfile, delfirst=True, shuffle=False, split=True):
-    """Load a matrix from a csv file.
-
-    Params:
-        delfirst    -- delete the first column of the matrix.
-        shuffle     -- shuffle the rows of the matrix
-        split       -- separate the last two column from the main matrix
-    """
-    loaded_data = np.loadtxt(csvfile, dtype=np.float64, delimiter=',')
-    if delfirst:
-        loaded_data = np.delete(loaded_data, 0, 1)
-    if shuffle:
-        np.random.shuffle(loaded_data)
-    if split:
-        Y_1, Y_2 = loaded_data[:, -2], loaded_data[:, -1]
-        loaded_data = np.delete(np.delete(loaded_data, -1, 1), -1, 1)
-        return loaded_data, Y_1, Y_2
-    else:
-        return loaded_data
-
-
-def separate_feature(df, nlast=1):
-    """separates the features from the target variables.
-    Params:
-        dataset  -- the dataset.
-        nlast    -- number of columns containing the target variables.
-    Returns:
-        features, targets
-    """
-    target_points = df[df.columns[-nlast:]]
-    #target_points.columns = ['X', 'Y']
-    feature_points = df[df.columns[:-nlast]]
-    feature_points.columns = [str(i+1)
-                              for i in range(len(feature_points.columns))]
-    return feature_points, target_points
-
-
-# Togliere ?
-def randomsample(mat, n):
-    """samples a random subset of size n from a matrix."""
-    r, c = mat.shape
-    assert(r >= n)
-    M = mat.to_numpy() if type(mat) is pd.core.frame.DataFrame else mat
-    return M[np.random.choice(r, n, replace=False), :]
 
 
 def sample_transform_problem(feature, target, size, seed=None):
@@ -114,28 +64,14 @@ def sample_transform_problem(feature, target, size, seed=None):
     return K, targetsamp
 
 
-def build_problem(n, u):
-    """
-    """
-    n2 = int(n/2)
-    G = np.block([[np.eye(n)], [-np.eye(n)]])
-    A = np.block([[np.ones(n2), -np.ones(n2)]])
-    h = np.zeros(2*n)
-    h[0:n] = u
-    b = np.zeros(1)
-    return G, A, h, b
-
-
 @jit(nopython=True)
 def linear(x, y):
     return np.dot(x, y)
-
 
 @jit(nopython=True)
 def rbf(x, y, gamma=1):
     a = np.dot(x-y, x-y)
     return np.exp(-gamma*a)
-
 
 def compute_kernel_matrix(dataset, dot_product=linear):
     n = len(dataset)
@@ -149,7 +85,6 @@ def compute_kernel_matrix(dataset, dot_product=linear):
             K[j, i] = v
 
     return K
-
 
 
 def load_ml_dataset():
@@ -180,6 +115,7 @@ def load_california_dataset():
     from sklearn.datasets.california_housing import fetch_california_housing
     data = fetch_california_housing()
     return data.data, data.target
+
 
 def plot_multiple_functions(functions, plot_avg=False, ax=None, color=None, col_avg=None, label="average"):
     plt = None
