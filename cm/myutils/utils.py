@@ -87,6 +87,21 @@ def compute_kernel_matrix(dataset, dot_product=linear):
     return K
 
 
+def separate_feature(df, nlast=1):
+    """separates the features from the target variables.
+    Params:
+        dataset  -- the dataset.
+        nlast    -- number of columns containing the target variables.
+    Returns:
+        features, targets
+    """
+    target_points = df[df.columns[-nlast:]]
+    #target_points.columns = ['X', 'Y']
+    feature_points = df[df.columns[:-nlast]]
+    feature_points.columns = [str(i+1)
+                              for i in range(len(feature_points.columns))]
+    return feature_points, target_points
+
 def load_ml_dataset():
     DATASET_PATH = __file__[:-16] + "data"
     DATASET_NAME = "ML-CUP19-TR.csv"
