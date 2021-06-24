@@ -39,8 +39,8 @@ def solve_with_cvxopt(K, target, epsilon, u):
     
     b = matrix(np.zeros(1))
     sol = solvers.qp(Q, q, G, h, A, b)
-    return sol['dual objective']
-    # return sol
+    #return sol['dual objective']
+    return sol
 
 
 
@@ -153,7 +153,7 @@ def compute_kernel_matrix(dataset, dot_product=linear):
 
 
 def load_ml_dataset():
-    DATASET_PATH = __file__[:-10] + "data"
+    DATASET_PATH = __file__[:-16] + "data"
     DATASET_NAME = "ML-CUP19-TR.csv"
     print("loading from: ")
     print(DATASET_PATH + "/" + DATASET_NAME)
@@ -165,7 +165,7 @@ def load_ml_dataset():
 
 
 def load_airfoil_dataset():
-    DATASET_PATH = __file__[:-10] + "data"
+    DATASET_PATH = __file__[:-16] + "data"
     DATASET_NAME = "airfoil_self_noise.csv"
 
     print(DATASET_PATH + "/" + DATASET_NAME)
