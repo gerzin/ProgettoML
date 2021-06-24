@@ -176,7 +176,7 @@ def project_Goldstein(d1, d2, u, lmb, d_lmb, eps):
     return x1, x2
 
 
-def project_Rosen(d1, d2, x1, x2, u):
+def project_Rosen(d1, d2, x1, x2, u, eps):
     """ Rosen projection of d over the feasible region { 0 <= x <= u, ax = 0 }
 
     Params:
@@ -185,6 +185,7 @@ def project_Rosen(d1, d2, x1, x2, u):
         x1  -- first block of the iterate
         x2  -- second block of the iterate
         u   -- upper bound of the feasible region
+        eps -- tolerance for the equality checks
 
     Returns:
         proj1  -- first block of the projected gradient
@@ -194,7 +195,6 @@ def project_Rosen(d1, d2, x1, x2, u):
 
     n = len(x1)
 
-    eps = 1e-9
     _u = u - eps
 
     # Active components masks

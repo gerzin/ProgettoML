@@ -65,7 +65,7 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
         alpha       -- stepsize along the gradient to project (Goldstain)
         lmb0        -- initial lambda value for the projection algorithm (Goldstain)
         d_lmb       -- initial delta_lambda value for the projection algorithm (Goldtsian)
-        prj_eps     -- precision of the projection
+        prj_eps     -- tolerance for the projection
 
         verbose     -- print more stats
         prj_type    -- type of projection. 1 = Goldstein, 2 = Rosen
@@ -143,7 +143,7 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
             d2 = d2 - x2
             count = 0
         else:
-            d1, d2, count = project_Rosen(-g1, -g2, x1, x2, C)
+            d1, d2, count = project_Rosen(-g1, -g2, x1, x2, C, prj_eps)
 
         # Compute the norm of the gradient (g) and of the direction (d)
         g_norm = np.sqrt((g1 @ g1) + (g2 @ g2))
