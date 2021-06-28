@@ -2,16 +2,15 @@
 import numpy as np
 from projections import project_Rosen, project_Goldstein
 from datastorer import DataStorer
-from myutils import time_program
 
 """
 SLBQP: Solves the singly linearly box contrained quadratic problem:
 
-    min { (1/2)x'Qx + qx : ax = 0, 0 <= x <= C }
+    min { (1/2)x'Qx + qx : 0 <= x <= C , ax = 0 }
 
 using the gradient projection method.
 
-The matrix 'Q' a symmetric matrix with the structure [ K -K; -K  K ]
+The matrix 'Q' a symmetric matrix whose structure is [ K -K; -K  K ]
 where 'K' is the kernel matrix (symmetric positive semidefinite)
 
 The vector 'q' is composed of two blocks: [epsilon - y, epsilon + y]'
@@ -26,13 +25,14 @@ upper bound for the box contraints
 
 For the projection, two options are available:
 
-1. Project the point, found by following the minimization direction, onto the feasible region.
-    The projection is computed with the algorithm described in [?]:
+1. Goldstein's version:
+    Project the point, found by following the minimization direction, onto the feasible region.
+    The projection is computed with the algorithm described in [1]:
     
     The projection is the solution of the minimization problem:
         min { (1/2)z'z - d'z : 0 <= z <= u, a'z = 0 }
 
-    It can be solved using the Lagrangian function:
+    This can be solved using the Lagrangian function:
         ϕ(x,λ) = (1/2)z'z - d'z - λa'z
     For a given λ we may solve:
         min { ϕ(x) : 0 <= z <= u }
@@ -44,10 +44,31 @@ For the projection, two options are available:
     Therefor, we first look for an interval containing the solution (BRACKETING PHASE)
     and then we look for the root (SECANT PHASE)
 
-2. Prohect the gradient so that, moving along its direction, the iteration point remains feasible.
-    ...
+2. Rosen's version:
+    Project the gradient so that, moving along its direction, the iteration point remains feasible.
+    
+    The projection operation can be written as the following matrix product:
+        d = - ((I - A' * inv(A*A') * A) * (Qx + q))
+    where A is the matrix of active constraints
 
+    Exploiting the structure of the problem we can simplify the computation simply setting to zero the
+    direction components corresponding to variables on the boundary of the box region and then computing
+    the other components as a normal projection on an hyperplane
+
+    To active set is built at the beginning of the algorithm and retained after all iterations.
+    It is modified in the degenerate iterations adding constraints if the projected direction points outside
+    the feasible region or if some Lagrange multiplier is negative.
+
+    The Lagrange multipliers are usually computed as
+    μ = [inv(A*A') * A] * (-∇f(x))
+    but, even in this case, the computation is simplified exploiting the particular problem structure
+
+
+[1] Yu-Hong Dai and Roger Fletcher. 
+"New algorithms for singly linearly constrained quadratic programs subject to lower and upper bounds".
+In:Mathematical Program-ming106.3 (2006), pp. 403–421.
 """
+
 
 def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, prj_eps=1e-9, verbose=False, prj_type=1, ds=None):
     """
@@ -65,7 +86,7 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
         alpha       -- stepsize along the gradient to project (Goldstain)
         lmb0        -- initial lambda value for the projection algorithm (Goldstain)
         d_lmb       -- initial delta_lambda value for the projection algorithm (Goldtsian)
-        prj_eps     -- tolerance for the projection
+        prj_eps     -- tolerance for equalities in the projection
 
         verbose     -- print more stats
         prj_type    -- type of projection. 1 = Goldstein, 2 = Rosen
@@ -154,24 +175,19 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
             print("%5d\t%1.8e\t%5d\t%1.8e\t%1.8e" %
                   (i, v, count, g_norm, d_norm), end="")
         # - - - - - - - - - - - - - - - - -
-
-        x1old, x2old = np.zeros(n), np.zeros(n)
-        x_norm = np.sqrt(((x1-x1old) @  (x1-x1old))+((x2-x2old) @  (x2-x2old)))
         
         # Check for termination
         if(d_norm < eps):
             if verbose:
                 print("")
             if ds is not None:
-                ds.push(iter=i, val=v, proj=count, gnorm=g_norm,
-                        dnorm=d_norm, xnorm=x_norm, step=0, maxstep=0)
+                ds.push(iter=i, val=v, proj=count, gnorm=g_norm, dnorm=d_norm, step=0, maxstep=0)
             return ('optimal', np.block([x1, x2]), v, i)
         if(maxIter > 0 and i >= maxIter):
             if verbose:
                 print("")
             if ds is not None:
-                ds.push(iter=i, val=v, proj=count, gnorm=g_norm,
-                        dnorm=d_norm, xnorm=x_norm, step=0, maxstep=0)
+                ds.push(iter=i, val=v, proj=count, gnorm=g_norm, dnorm=d_norm, step=0, maxstep=0)
             return ('terminated', np.block([x1, x2]), v, i)
 
         # Compute the maximum feasible stepsize - - - - -
@@ -210,15 +226,12 @@ def SLBQP(K, y, C, epsilon, eps=1e-6, maxIter=1000, alpha=1, lmb0=0, d_lmb=2, pr
         if verbose:
             print("\t%1.8e\t%1.8e" % (step, max_step))
 
-        # TODO rimuovere x1old dopo aver calcolato le statistiche
-        x1old = x1.copy()
-        x2old = x2.copy()
+        # Store iteration statistics
+        if ds is not None:
+            ds.push(iter=i, val=v, proj=count, gnorm=g_norm, dnorm=d_norm, step=step, maxstep=max_step)
 
         # Compute next iterate
         x1 = x1 + step * d1
         x2 = x2 + step * d2
-        if ds is not None:
-            ds.push(iter=i, val=v, proj=count, gnorm=g_norm,
-                    dnorm=d_norm, xnorm=x_norm, step=step, maxstep=max_step)
 
         i = i + 1
