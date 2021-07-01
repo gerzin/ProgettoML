@@ -57,8 +57,8 @@ def project_Goldstein(d1, d2, u, lmb, d_lmb, eps):
         d1      -- first block of the direction vector
         d2      -- second block of the direction vector
         u       -- upper bound of the feasible region
-        lmb     -- 
-        d_lmb   -- delta lambda
+        lmb     -- initial value for lambda
+        d_lmb   -- initial step for the lambda update
         eps     -- precision
 
     Returns:
