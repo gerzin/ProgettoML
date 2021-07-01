@@ -1,13 +1,10 @@
-import pathlib
-import argparse
 import numpy as np
-from numba import jit, njit, prange
 import pandas as pd
 import csv
 import matplotlib
 import matplotlib.pyplot as plt
-from cvxopt import matrix
-from cvxopt import solvers
+from cvxopt import matrix, solvers
+from numba import jit, njit
 
 
 def solve_with_cvxopt(K, target, epsilon, u):
@@ -18,7 +15,7 @@ def solve_with_cvxopt(K, target, epsilon, u):
         epsilon -- coefficient used to build vector q
         u       -- upper bound for the feasible region
     Returns:
-        sol     --  object containing the primal and dual solutions.
+        sol     -- object containing the primal and dual solutions.
     """
     
     size = len(target)
@@ -41,11 +38,14 @@ def solve_with_cvxopt(K, target, epsilon, u):
 
 
 
-def sample_transform_problem(feature, target, size, seed=None):
+def sample_transform_problem(feature, target, size):
+    """Samples a subset of the input matrices/vectors and applies a kernel.
+    Params:
+        feature     -- features matrix
+        target      -- target vector
+        size        -- size of the problem to sample
     """
-    samples a subset of the input matrices/vectors and applies a kernel.
-    """
-    #np.random.seed(seed)
+
     r, c = feature.shape
     assert(r >= size)
     rand_ind = np.random.choice(r, size, replace=False)
@@ -55,7 +55,6 @@ def sample_transform_problem(feature, target, size, seed=None):
     if len(T.shape) > 1:
         if(T.shape[1] == 1): T = T.flatten()
 
-    
 
     featuresamp = M[rand_ind, :]
     targetsamp = T[rand_ind]
@@ -95,12 +94,13 @@ def separate_feature(df, nlast=1):
     Returns:
         features, targets
     """
+
     target_points = df[df.columns[-nlast:]]
-    #target_points.columns = ['X', 'Y']
     feature_points = df[df.columns[:-nlast]]
     feature_points.columns = [str(i+1)
                               for i in range(len(feature_points.columns))]
     return feature_points, target_points
+
 
 def load_ml_dataset():
     DATASET_PATH = __file__[:-16] + "data"
@@ -113,7 +113,6 @@ def load_ml_dataset():
 
     return features.to_numpy(), targets.to_numpy()
 
-
 def load_airfoil_dataset():
     DATASET_PATH = __file__[:-16] + "data"
     DATASET_NAME = "airfoil_self_noise.csv"
@@ -125,11 +124,11 @@ def load_airfoil_dataset():
     df, targets = separate_feature(df, 1)
     return df.to_numpy(), targets.to_numpy()
 
-
 def load_california_dataset():
     from sklearn.datasets.california_housing import fetch_california_housing
     data = fetch_california_housing()
     return data.data, data.target
+
 
 
 def plot_multiple_functions(functions, plot_avg=False, ax=None, color=None, col_avg=None, label="average"):

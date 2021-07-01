@@ -132,7 +132,10 @@ def project_Goldstein(d1, d2, u, lmb, d_lmb, eps):
         lmb_l = lmb
         r_l = r
 
-    # secant phase
+
+    # SECANT PHASE -----
+    # ------------------
+
     s = 1 - r_l/r_u
     d_lmb = d_lmb/s
     lmb = lmb_u - d_lmb
@@ -140,39 +143,53 @@ def project_Goldstein(d1, d2, u, lmb, d_lmb, eps):
 
     while(abs(r) >= eps):
         if(r > 0):
-            # move upper bound
             if(s <= 2):
+                # Update upper bound
                 lmb_u = lmb
                 r_u = r
+
+                # Compute new lambda
                 s = 1 - r_l/r_u
                 d_lmb = (lmb_u - lmb_l)/s
                 lmb = lmb_u - d_lmb
+
             else:
+                # Update parameters
                 s = max(r_u/r - 1, 0.1)
                 d_lmb = (lmb_u - lmb)/s
-                lmb_new = max(lmb - d_lmb, 0.75*lmb_l + 0.25*lmb)
+
+                # Update upper bound and compute new lambda
                 lmb_u = lmb
                 r_u = r
-                lmb = lmb_new
+                lmb = max(lmb - d_lmb, 0.75*lmb_l + 0.25*lmb)
                 s = (lmb_u - lmb_l)/(lmb_u - lmb)
+
         else:
-            # move lower bound
             if(s >= 2):
+                # Update lower bound
                 lmb_l = lmb
                 r_l = r
+
+                # Compute new lambda
                 s = 1 - r_l/r_u
                 d_lmb = (lmb_u - lmb_l)/s
                 lmb = lmb_u - d_lmb
+
             else:
+                # Update parameters
                 s = max(r_l/r - 1, 0.1)
                 d_lmb = (lmb - lmb_l)/s
-                lmb_new = min(lmb + d_lmb, 0.75*lmb_u + 0.25*lmb)
+
+                # Update lower bound and compute new lambda
                 lmb_l = lmb
                 r_l = r
-                lmb = lmb_new
+                lmb = min(lmb + d_lmb, 0.75*lmb_u + 0.25*lmb)
                 s = (lmb_u - lmb_l)/(lmb_u - lmb)
 
+        # Compute new x and r
         x1, x2, r = compute_x_r(d1, d2, lmb, u)
+
+
     return x1, x2
 
 
