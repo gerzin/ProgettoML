@@ -36,9 +36,11 @@ if __name__ == '__main__':
         else:
             print("Unknown dataset... Using Airfoil")
             feat, targ = load_airfoil_dataset()
+            targ = targ.flatten()
 
     else:
         feat, targ = load_airfoil_dataset()
+        targ = targ.flatten()
     # ------------------
 
     # Parameters check
