@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-import numpy as np
 import time
-from random import randint
 import sys
+import numpy as np
+from random import randint
+
 from SLBQP import SLBQP
 from myutils import *
-from cvxopt import solvers
 
 
 if __name__ == '__main__':
 
-    # Command line arguments
     if len(sys.argv) < 4:
         print(f"Use: {sys.argv[0]} n C eps [dataset]")
         print(f"\tdataset = [ml, airfoil, california]")
         exit()
+
 
     # Problem parameters
     n = int(sys.argv[1])
@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     else:
         feat, targ = load_airfoil_dataset()
-
+    # ------------------
 
     # Parameters check
     if n <= 0:
@@ -55,15 +55,17 @@ if __name__ == '__main__':
         exit()
     # ----------------
 
+
     GOLDSTEIN = 1
     ROSEN = 2
-
 
     seed = randint(1, 10000000)
     print(f"{seed=}")
     np.random.seed(seed)
 
+    # Generate problem
     Q, q = sample_transform_problem(feat, targ, n)
+
 
     ######
     print("Running ROSEN")
@@ -73,6 +75,7 @@ if __name__ == '__main__':
     print("info ROSEN:")
     print(f"x: {xr} ({sr})\tv: {vr}\ttime: {endr-startr}\titer: {itr}\n")
     ######
+
 
     ######
     print("Running GOLDSTEIN")
